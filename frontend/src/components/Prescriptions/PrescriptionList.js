@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import useRealTimeSync from '../../hooks/useRealTimeSync';
 import GlitchText from '../GlitchText/GlitchText';
 import './Prescriptions.css';
 
@@ -7,9 +8,28 @@ const PrescriptionList = ({ patientId, userRole }) => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Real-time sync hook
+  const { registerCallback, triggerRefresh } = useRealTimeSync(patientId, userRole);
+
   useEffect(() => {
     fetchPrescriptions();
   }, [patientId]);
+
+  // Register real-time callbacks
+  useEffect(() => {
+    if (!patientId) return;
+
+    // Register callbacks for real-time updates
+    const unregisterPrescriptionUpdate = registerCallback('onPrescriptionUpdate', (data) => {
+      console.log('PrescriptionList: Prescription updated', data);
+      fetchPrescriptions(); // Refresh prescriptions list
+    });
+
+    // Cleanup on unmount
+    return () => {
+      unregisterPrescriptionUpdate?.();
+    };
+  }, [patientId, registerCallback]);
 
   const fetchPrescriptions = async () => {
     try {

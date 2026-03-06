@@ -63,6 +63,17 @@ router.post('/create', verifyToken, async (req, res) => {
     });
     await notification.save();
 
+    // Emit real-time update
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('test:updated', {
+        action: 'created',
+        test: test,
+        userId: patientId,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Test record created successfully',

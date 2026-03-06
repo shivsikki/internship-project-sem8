@@ -46,6 +46,17 @@ router.post('/create', verifyToken, async (req, res) => {
     await prescription.populate('patient', 'name email');
     await prescription.populate('doctor', 'name specialization');
 
+    // Emit real-time update
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('prescription:updated', {
+        action: 'created',
+        prescription: prescription,
+        userId: patientId,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Prescription created successfully',

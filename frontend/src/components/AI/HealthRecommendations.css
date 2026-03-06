@@ -1,0 +1,901 @@
+.health-recommendations {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+.health-recommendations-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
+  color: #667eea;
+}
+
+.health-recommendations-loading .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(102, 126, 234, 0.3);
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.recommendations-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+.recommendations-header h2 {
+  margin: 0 0 10px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.recommendations-header p {
+  margin: 0;
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Wellness Score Section */
+.wellness-score-section {
+  margin-bottom: 40px;
+}
+
+.score-overview {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.score-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 8px solid #4ecdc4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: white;
+  box-shadow: 0 8px 25px rgba(78, 205, 196, 0.3);
+}
+
+.score-circle::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(78, 205, 196, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.score-value {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 5px;
+}
+
+.score-details {
+  flex: 1;
+}
+
+.score-details h3 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.score-details p {
+  margin: 0 0 20px 0;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+/* Risk Assessment */
+.risk-assessment {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 15px;
+  border-left: 4px solid #667eea;
+}
+
+.risk-assessment h4 {
+  margin: 0 0 15px 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.risk-overview {
+  margin-bottom: 20px;
+}
+
+.risk-level {
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.risk-factors {
+  display: grid;
+  gap: 15px;
+}
+
+.risk-factor {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.factor-name {
+  min-width: 120px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.risk-bar {
+  flex: 1;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.risk-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.risk-score {
+  min-width: 40px;
+  text-align: right;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+/* Health Insights */
+.insights-section {
+  margin-bottom: 40px;
+}
+
+.insights-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.insight-card {
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #667eea;
+}
+
+.insight-card.positive {
+  border-left-color: #4ecdc4;
+}
+
+.insight-card.warning {
+  border-left-color: #f9ca24;
+}
+
+.insight-card.opportunity {
+  border-left-color: #45b7d1;
+}
+
+.insight-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.insight-icon {
+  font-size: 1.5rem;
+}
+
+.insight-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.insight-card p {
+  margin: 0 0 15px 0;
+  color: #6c757d;
+  line-height: 1.6;
+}
+
+.confidence-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.confidence-bar {
+  flex: 1;
+  height: 6px;
+  background: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Personalized Plan */
+.personalized-plan-section {
+  margin-bottom: 40px;
+}
+
+.personalized-plan-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.plan-overview {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.plan-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.plan-duration {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.plan-focus {
+  margin-bottom: 25px;
+}
+
+.plan-focus h5 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.plan-focus ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.plan-focus li {
+  margin: 8px 0;
+  color: #6c757d;
+  line-height: 1.5;
+}
+
+.weekly-schedule h5 {
+  margin: 0 0 15px 0;
+  color: #495057;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+}
+
+.day-schedule {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.day-schedule h6 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.day-schedule ul {
+  margin: 0;
+  padding-left: 15px;
+}
+
+.day-schedule li {
+  margin: 5px 0;
+  font-size: 0.85rem;
+  color: #6c757d;
+  line-height: 1.4;
+}
+
+/* Category Filter */
+.category-filter {
+  margin-bottom: 40px;
+}
+
+.category-filter h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.category-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: white;
+  padding: 10px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.category-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  color: #6c757d;
+}
+
+.category-tab:hover {
+  background: #f8f9fa;
+  color: #495057;
+}
+
+.category-tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.category-icon {
+  font-size: 1.2rem;
+}
+
+.category-label {
+  font-size: 0.9rem;
+}
+
+/* Recommendations List */
+.recommendations-list {
+  margin-bottom: 40px;
+}
+
+.recommendations-list h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.recommendations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+.recommendation-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  padding: 25px 25px 20px 25px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #e9ecef;
+}
+
+.recommendation-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.recommendation-title h4 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.recommendation-meta {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.priority-badge,
+.difficulty-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+.time-commitment {
+  font-size: 0.85rem;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.card-content {
+  padding: 25px;
+}
+
+.card-content > p {
+  margin: 0 0 20px 0;
+  color: #6c757d;
+  line-height: 1.6;
+}
+
+.benefits-section,
+.action-steps {
+  margin-bottom: 20px;
+}
+
+.benefits-section h5,
+.action-steps h5 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.benefits-section ul,
+.action-steps ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.benefits-section li,
+.action-steps li {
+  margin: 8px 0;
+  color: #6c757d;
+  line-height: 1.5;
+}
+
+.progress-section {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-header span {
+  font-weight: 600;
+  color: #495057;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #4ecdc4 0%, #45b7d1 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.progress-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #667eea;
+  color: white;
+}
+
+.progress-btn:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+}
+
+.progress-btn.complete {
+  background: #4ecdc4;
+}
+
+.progress-btn.complete:hover {
+  background: #45b7d1;
+}
+
+/* Health Goals */
+.health-goals-section {
+  margin-bottom: 40px;
+}
+
+.health-goals-section h3 {
+  margin: 0 0 20px 0;
+  color: #2c3e50;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.goal-card {
+  background: white;
+  padding: 25px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.goal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.goal-icon {
+  font-size: 1.5rem;
+}
+
+.goal-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.goal-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.progress-circle {
+  position: relative;
+  width: 60px;
+  height: 60px;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #4ecdc4;
+}
+
+.goal-details {
+  font-size: 0.9rem;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .score-overview {
+    flex-direction: column;
+    text-align: center;
+    gap: 30px;
+  }
+  
+  .score-circle {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .score-value {
+    font-size: 2.5rem;
+  }
+  
+  .recommendations-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .health-recommendations {
+    padding: 15px;
+  }
+  
+  .recommendations-header {
+    padding: 20px;
+  }
+  
+  .recommendations-header h2 {
+    font-size: 2rem;
+  }
+  
+  .score-overview {
+    padding: 20px;
+    gap: 20px;
+  }
+  
+  .score-circle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .score-value {
+    font-size: 2rem;
+  }
+  
+  .insights-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .category-tabs {
+    justify-content: center;
+  }
+  
+  .recommendations-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .goals-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  
+  .schedule-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .recommendations-header h2 {
+    font-size: 1.8rem;
+  }
+  
+  .recommendations-header p {
+    font-size: 1rem;
+  }
+  
+  .score-circle {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .score-value {
+    font-size: 1.8rem;
+  }
+  
+  .score-label {
+    font-size: 0.8rem;
+  }
+  
+  .category-tab {
+    padding: 10px 15px;
+    font-size: 0.85rem;
+  }
+  
+  .recommendation-card {
+    margin: 0 -10px;
+    border-radius: 15px;
+  }
+  
+  .card-header {
+    padding: 20px;
+  }
+  
+  .card-content {
+    padding: 20px;
+  }
+  
+  .goal-card {
+    padding: 20px;
+  }
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] .health-recommendations {
+  background: var(--dark-bg);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .recommendations-header {
+  background: var(--dark-gradient);
+}
+
+[data-theme="dark"] .score-overview,
+[data-theme="dark"] .insight-card,
+[data-theme="dark"] .plan-overview,
+[data-theme="dark"] .category-tabs,
+[data-theme="dark"] .recommendation-card,
+[data-theme="dark"] .goal-card {
+  background: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .risk-assessment,
+[data-theme="dark"] .day-schedule,
+[data-theme="dark"] .progress-section {
+  background: var(--dark-surface);
+}
+
+[data-theme="dark"] .card-header {
+  background: var(--dark-surface);
+  border-bottom-color: var(--dark-border);
+}
+
+[data-theme="dark"] .score-details h3,
+[data-theme="dark"] .insights-section h3,
+[data-theme="dark"] .personalized-plan-section h3,
+[data-theme="dark"] .category-filter h3,
+[data-theme="dark"] .recommendations-list h3,
+[data-theme="dark"] .health-goals-section h3 {
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .recommendation-title h4,
+[data-theme="dark"] .goal-header h4 {
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .card-content > p,
+[data-theme="dark"] .benefits-section li,
+[data-theme="dark"] .action-steps li,
+[data-theme="dark"] .plan-focus li,
+[data-theme="dark"] .day-schedule li,
+[data-theme="dark"] .goal-details {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .category-tab {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .category-tab:hover {
+  background: var(--dark-surface);
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .time-commitment,
+[data-theme="dark"] .risk-score {
+  color: var(--dark-text-secondary);
+}
+
+[data-theme="dark"] .factor-name {
+  color: var(--dark-text);
+}
+
+[data-theme="dark"] .progress-bar,
+[data-theme="dark"] .confidence-bar,
+[data-theme="dark"] .risk-bar {
+  background: var(--dark-border);
+}

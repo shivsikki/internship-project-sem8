@@ -1,115 +1,163 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useToast } from '../Toast/ToastProvider';
+import React, { useState, useEffect, useRef } from 'react';
 import './Tests.css';
 
-const TestTimer = ({ test, onTimeUp, onSubmit }) => {
-  const toast = useToast();
-  const [timeRemaining, setTimeRemaining] = useState(null);
-  const [isStarted, setIsStarted] = useState(false);
-  const [warning, setWarning] = useState(false);
+const TestTimer = ({ test, onClose, onSubmit }) => {
+  const [timeLeft, setTimeLeft] = useState(test.timerDuration * 60); // Convert to seconds
+  const [isRunning, setIsRunning] = useState(true);
+  const [bodyCheckData, setBodyCheckData] = useState(test.bodyCheck || {});
+  const [testResults, setTestResults] = useState('');
+  const intervalRef = useRef(null);
 
   useEffect(() => {
-    if (!test || !test.timerDuration) return;
-
-    // Check if test is already started
-    if (test.startTime && test.status === 'in_progress' && !test.isSubmitted) {
-      setIsStarted(true);
-      calculateTimeRemaining();
-    }
-  }, [test]);
-
-  useEffect(() => {
-    if (!isStarted || !test?.timerDuration || test?.isSubmitted) return;
-
-    const interval = setInterval(() => {
-      calculateTimeRemaining();
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isStarted, test]);
-
-  const calculateTimeRemaining = () => {
-    if (!test.startTime || !test.timerDuration) return;
-
-    const start = new Date(test.startTime);
-    const now = new Date();
-    const elapsed = Math.floor((now - start) / 1000 / 60); // minutes elapsed
-    const remaining = test.timerDuration - elapsed;
-
-    if (remaining <= 0) {
-      setTimeRemaining(0);
-      if (onTimeUp) onTimeUp();
-      return;
+    if (isRunning && timeLeft > 0) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      handleSubmit();
     }
 
-    setTimeRemaining(remaining);
-    
-    // Show warning when less than 5 minutes remain
-    if (remaining <= 5 && !warning) {
-      setWarning(true);
-    }
-  };
-
-  const startTest = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`/api/tests/${test._id}/start`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.success) {
-        setIsStarted(true);
-        calculateTimeRemaining();
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to start test');
-    }
+    };
+  }, [isRunning, timeLeft]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const formatTime = (minutes) => {
-    if (minutes === null || minutes === undefined) return '--:--';
-    const hrs = Math.floor(minutes / 60);
-    const mins = Math.floor(minutes % 60);
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  const handlePauseResume = () => {
+    setIsRunning(!isRunning);
   };
 
-  if (!test.timerDuration) return null;
+  const handleBodyCheckChange = (field, value) => {
+    setBodyCheckData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
-  if (test.isSubmitted) {
-    return (
-      <div className="test-timer-container completed">
-        <div className="test-timer-label">Test Completed</div>
-        <div className="test-timer-time">Submitted at {new Date(test.submittedAt).toLocaleTimeString()}</div>
-      </div>
-    );
-  }
+  const handleSubmit = () => {
+    onSubmit({
+      ...test,
+      bodyCheck: bodyCheckData,
+      testResults: testResults
+    });
+  };
 
-  if (!isStarted) {
-    return (
-      <div className="test-timer-container not-started">
-        <div className="test-timer-label">Test Duration: {formatTime(test.timerDuration)}</div>
-        <button onClick={startTest} className="start-test-button">
-          Start Test
-        </button>
-      </div>
-    );
-  }
+  const getTimeColor = () => {
+    const percentage = (timeLeft / (test.timerDuration * 60)) * 100;
+    if (percentage > 50) return '#4ecdc4';
+    if (percentage > 20) return '#f9ca24';
+    return '#ff6b6b';
+  };
 
   return (
-    <div className={`test-timer-container ${warning ? 'warning' : ''} ${timeRemaining === 0 ? 'expired' : ''}`}>
-      <div className="test-timer-label">Time Remaining</div>
-      <div className={`test-timer-time ${warning ? 'warning-text' : ''}`}>
-        {formatTime(timeRemaining)}
-      </div>
-      {warning && timeRemaining > 0 && (
-        <div className="test-timer-warning">Less than 5 minutes remaining!</div>
-      )}
-      {timeRemaining === 0 && (
-        <div className="test-timer-expired">
-          Time's up! Test will be submitted automatically.
+    <div className="modal-overlay">
+      <div className="modal-content test-timer-modal">
+        <div className="test-timer-header">
+          <h3>{test.testName}</h3>
+          <div className="timer-display" style={{ color: getTimeColor() }}>
+            {formatTime(timeLeft)}
+          </div>
         </div>
-      )}
+
+        <div className="test-instructions">
+          <h4>Test Instructions</h4>
+          <p>Please complete the following measurements and answer the test questions.</p>
+        </div>
+
+        <div className="body-check-section">
+          <h4>Body Check Measurements</h4>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Temperature (°F):</label>
+              <input
+                type="text"
+                value={bodyCheckData.temperature || ''}
+                onChange={(e) => handleBodyCheckChange('temperature', e.target.value)}
+                placeholder="98.6"
+              />
+            </div>
+            <div className="form-group">
+              <label>Blood Pressure:</label>
+              <input
+                type="text"
+                value={bodyCheckData.bloodPressure || ''}
+                onChange={(e) => handleBodyCheckChange('bloodPressure', e.target.value)}
+                placeholder="120/80"
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Heart Rate (bpm):</label>
+              <input
+                type="text"
+                value={bodyCheckData.heartRate || ''}
+                onChange={(e) => handleBodyCheckChange('heartRate', e.target.value)}
+                placeholder="72"
+              />
+            </div>
+            <div className="form-group">
+              <label>Weight (kg):</label>
+              <input
+                type="text"
+                value={bodyCheckData.weight || ''}
+                onChange={(e) => handleBodyCheckChange('weight', e.target.value)}
+                placeholder="70"
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Height (cm):</label>
+            <input
+              type="text"
+              value={bodyCheckData.height || ''}
+              onChange={(e) => handleBodyCheckChange('height', e.target.value)}
+              placeholder="170"
+            />
+          </div>
+        </div>
+
+        <div className="test-answers-section">
+          <h4>Test Answers</h4>
+          <div className="form-group">
+            <label>Test Results/Answers:</label>
+            <textarea
+              value={testResults}
+              onChange={(e) => setTestResults(e.target.value)}
+              placeholder="Enter your test answers or results here..."
+              rows="6"
+            />
+          </div>
+        </div>
+
+        <div className="test-timer-actions">
+          <button
+            onClick={handlePauseResume}
+            className={`btn-${isRunning ? 'warning' : 'success'}`}
+          >
+            {isRunning ? 'Pause' : 'Resume'}
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="btn-primary"
+          >
+            Submit Test
+          </button>
+          <button
+            onClick={onClose}
+            className="btn-secondary"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

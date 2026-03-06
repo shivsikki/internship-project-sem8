@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import useRealTimeSync from '../../hooks/useRealTimeSync';
 import BookAppointment from '../Appointments/BookAppointment';
 import AppointmentList from '../Appointments/AppointmentList';
 import PrescriptionForm from '../Prescriptions/PrescriptionForm';
@@ -9,10 +10,16 @@ import TestForm from '../Tests/TestForm';
 import TestList from '../Tests/TestList';
 import PaymentList from '../Payments/PaymentList';
 import NotificationBell from '../Notifications/NotificationBell';
+import UnifiedAIAssistant from '../AI/UnifiedAIAssistant';
+import AdvancedAIFeatures from '../AI/AdvancedAIFeatures';
+import HealthDashboard from './HealthDashboard';
+import HealthRecommendations from '../AI/HealthRecommendations';
+import VideoConsultation from '../VideoConsultation/VideoConsultation';
 import ProfilePage from '../Profile/ProfilePage';
 import NotificationsPage from '../Notifications/NotificationsPage';
 import ChatPanel from '../Chat/ChatPanel';
 import EmergencyPanel from '../Emergency/EmergencyPanel';
+import DoctorFinder from '../Location/DoctorFinder';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -20,18 +27,18 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarHover, setSidebarHover] = useState(false);
   const [stats, setStats] = useState({
     appointments: [],
     prescriptions: [],
     tests: [],
     totalRevenue: 0
   });
-  const [theme, setTheme] = useState(() => {
-    if (typeof window === 'undefined') return 'light';
-    return localStorage.getItem('theme') || 'light';
-  });
+  const [theme, setTheme] = useState('light');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarHover, setSidebarHover] = useState(false);
+
+  // Real-time sync hook
+  const { registerCallback, triggerRefresh } = useRealTimeSync(user?._id, user?.role);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -138,6 +145,84 @@ const Dashboard = () => {
     };
   }, [user, activeTab]);
 
+  // Register real-time callbacks
+  useEffect(() => {
+    if (!user?._id) return;
+
+    // Register callbacks for real-time updates
+    const unregisterTestUpdate = registerCallback('onTestUpdate', (data) => {
+      console.log('Dashboard: Test updated', data);
+      // Refresh stats if on dashboard tab
+      if (activeTab === 'dashboard') {
+        // Trigger stats refresh
+        const fetchStats = async () => {
+          try {
+            const token = localStorage.getItem('token');
+            const [appointmentsRes, paymentsRes] = await Promise.all([
+              axios.get(user.role === 'patient' ? '/api/appointments/patient' : user.role === 'doctor' ? '/api/appointments/doctor' : '/api/appointments/all', {
+                headers: { Authorization: `Bearer ${token}` }
+              }),
+              (user.role === 'patient' || user.role === 'admin') ? axios.get(user.role === 'admin' ? '/api/payments/all' : '/api/payments/patient', {
+                headers: { Authorization: `Bearer ${token}` }
+              }) : Promise.resolve({ data: { totalRevenue: 0 } })
+            ]);
+
+            let prescriptions = [];
+            let tests = [];
+            if (user.role === 'patient') {
+              const [presRes, testRes] = await Promise.all([
+                axios.get(`/api/prescriptions/patient/${user._id}`, { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get(`/api/tests/patient/${user._id}`, { headers: { Authorization: `Bearer ${token}` } })
+              ]);
+              prescriptions = presRes.data.prescriptions || [];
+              tests = testRes.data.tests || [];
+            } else if (user.role === 'doctor') {
+              const [presRes, testRes] = await Promise.all([
+                axios.get('/api/prescriptions/doctor', { headers: { Authorization: `Bearer ${token}` } }),
+                axios.get('/api/tests/doctor', { headers: { Authorization: `Bearer ${token}` } })
+              ]);
+              prescriptions = presRes.data.prescriptions || [];
+              tests = testRes.data.tests || [];
+            }
+
+            setStats({
+              appointments: appointmentsRes.data.appointments || [],
+              prescriptions,
+              tests,
+              totalRevenue: paymentsRes.data?.totalRevenue || 0
+            });
+          } catch (err) {
+            console.error('Error refreshing stats:', err);
+          }
+        };
+        fetchStats();
+      }
+    });
+
+    const unregisterPrescriptionUpdate = registerCallback('onPrescriptionUpdate', (data) => {
+      console.log('Dashboard: Prescription updated', data);
+      // Refresh stats if on dashboard tab
+      if (activeTab === 'dashboard') {
+        // Similar refresh logic as above
+      }
+    });
+
+    const unregisterAppointmentUpdate = registerCallback('onAppointmentUpdate', (data) => {
+      console.log('Dashboard: Appointment updated', data);
+      // Refresh stats if on dashboard tab
+      if (activeTab === 'dashboard') {
+        // Similar refresh logic as above
+      }
+    });
+
+    // Cleanup on unmount
+    return () => {
+      unregisterTestUpdate?.();
+      unregisterPrescriptionUpdate?.();
+      unregisterAppointmentUpdate?.();
+    };
+  }, [user?._id, registerCallback, activeTab]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -194,6 +279,7 @@ const Dashboard = () => {
   const navItems = [];
   navItems.push({ id: 'dashboard', label: 'Dashboard' });
   if (user.role === 'patient') {
+    navItems.push({ id: 'doctor-finder', label: '📍 Find Doctors' });
     navItems.push({ id: 'book', label: 'Book Appointment' });
     navItems.push({ id: 'appointments', label: 'My Appointments' });
     navItems.push({ id: 'prescriptions', label: 'My Prescriptions' });
@@ -212,6 +298,11 @@ const Dashboard = () => {
   navItems.push({ id: 'profile', label: 'Profile' });
   navItems.push({ id: 'notifications', label: 'Notifications' });
   navItems.push({ id: 'chat', label: 'Chat (beta)' });
+  navItems.push({ id: 'ai-assistant', label: '🤖 AI Assistant' });
+  navItems.push({ id: 'advanced-ai', label: '🧠 Advanced AI' });
+  navItems.push({ id: 'health-dashboard', label: '📊 Health Dashboard' });
+  navItems.push({ id: 'health-recommendations', label: '💡 Health Coach' });
+  navItems.push({ id: 'video-consultation', label: '📹 Video Call' });
   if (user.role === 'patient') {
     navItems.push({ id: 'emergency', label: 'Emergency' });
   }
@@ -449,6 +540,10 @@ const Dashboard = () => {
             </div>
           )}
 
+          {activeTab === 'doctor-finder' && user.role === 'patient' && (
+            <DoctorFinder />
+          )}
+
           {activeTab === 'book' && user.role === 'patient' && (
             <BookAppointment />
           )}
@@ -469,7 +564,7 @@ const Dashboard = () => {
           {activeTab === 'tests' && (
             <>
               {user.role === 'doctor' && (
-                <TestForm />
+                <TestForm user={user} />
               )}
               <TestList patientId={user.role === 'patient' ? user._id : null} userRole={user.role} />
             </>
@@ -494,6 +589,26 @@ const Dashboard = () => {
 
           {activeTab === 'chat' && (
             <ChatPanel user={user} />
+          )}
+
+          {activeTab === 'ai-assistant' && (
+            <UnifiedAIAssistant />
+          )}
+
+          {activeTab === 'advanced-ai' && (
+            <AdvancedAIFeatures user={user} />
+          )}
+
+          {activeTab === 'health-dashboard' && (
+            <HealthDashboard user={user} />
+          )}
+
+          {activeTab === 'health-recommendations' && (
+            <HealthRecommendations user={user} />
+          )}
+
+          {activeTab === 'video-consultation' && (
+            <VideoConsultation user={user} />
           )}
 
           {activeTab === 'emergency' && user.role === 'patient' && (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import useRealTimeSync from '../../hooks/useRealTimeSync';
 import GlitchText from '../GlitchText/GlitchText';
 import TestTimer from './TestTimer';
 import TestSubmission from './TestSubmission';
@@ -18,9 +19,28 @@ const TestList = ({ patientId, userRole }) => {
     status: ''
   });
 
+  // Real-time sync hook
+  const { registerCallback, triggerRefresh } = useRealTimeSync(patientId, userRole);
+
   useEffect(() => {
     fetchTests();
   }, [patientId]);
+
+  // Register real-time callbacks
+  useEffect(() => {
+    if (!patientId) return;
+
+    // Register callbacks for real-time updates
+    const unregisterTestUpdate = registerCallback('onTestUpdate', (data) => {
+      console.log('TestList: Test updated', data);
+      fetchTests(); // Refresh tests list
+    });
+
+    // Cleanup on unmount
+    return () => {
+      unregisterTestUpdate?.();
+    };
+  }, [patientId, registerCallback]);
 
   const fetchTests = async () => {
     try {
@@ -47,29 +67,6 @@ const TestList = ({ patientId, userRole }) => {
     }
   };
 
-  const handleUpdate = async (testId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const updateData = {};
-      if (updateForm.testResults) updateData.testResults = updateForm.testResults;
-      if (updateForm.notes !== undefined) updateData.notes = updateForm.notes;
-      if (updateForm.status) updateData.status = updateForm.status;
-
-      const response = await axios.put(`/api/tests/${testId}`, updateData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data.success) {
-        setSelectedTest(null);
-        setUpdateForm({ testResults: '', notes: '', status: '' });
-        fetchTests();
-        toast.success('Test updated successfully');
-      }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to update test');
-    }
-  };
-
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -78,16 +75,53 @@ const TestList = ({ patientId, userRole }) => {
     });
   };
 
+  const handleStartTest = async (testId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`/api/tests/${testId}/start`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        toast.success('Test started successfully');
+        setSelectedTest(response.data.test);
+      }
+    } catch (err) {
+      console.error('Error starting test:', err);
+      toast.error('Failed to start test');
+    }
+  };
+
+  const handleSubmitTest = (test) => {
+    setSubmissionTest(test);
+  };
+
+  const handleUpdateTest = async (testId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(`/api/tests/${testId}`, updateForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        toast.success('Test updated successfully');
+        setSelectedTest(null);
+        setUpdateForm({ testResults: '', notes: '', status: '' });
+        fetchTests();
+      }
+    } catch (err) {
+      console.error('Error updating test:', err);
+      toast.error('Failed to update test');
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed':
-        return '#4CAF50';
-      case 'pending':
-        return '#FF9800';
-      case 'cancelled':
-        return '#F44336';
-      default:
-        return '#666';
+      case 'pending': return '#f9ca24';
+      case 'in_progress': return '#0984e3';
+      case 'completed': return '#00b894';
+      case 'cancelled': return '#d63031';
+      default: return '#636e72';
     }
   };
 
@@ -96,91 +130,76 @@ const TestList = ({ patientId, userRole }) => {
   }
 
   return (
-    <div className="tests-list-container">
-      <h2>Tests & Medical Records</h2>
+    <div className="tests-container">
+      <h2>Medical Tests</h2>
 
       {tests.length === 0 ? (
         <div className="empty-state-center">
           <GlitchText speed={1} enableShadows enableOnHover={false}>
-            No Tests
+            No Tests Available
           </GlitchText>
         </div>
       ) : (
         <div className="tests-grid">
           {tests.map((test) => (
-            <div key={test._id} className="test-card-item">
+            <div key={test._id} className="test-card">
               <div className="test-header">
                 <div>
-                  <strong>{test.testName}</strong>
-                  <span className="test-type">{test.testType}</span>
+                  <strong>Date:</strong> {formatDate(test.testDate)}
                 </div>
-                <div className="test-status" style={{ backgroundColor: getStatusColor(test.status) }}>
-                  {test.status.toUpperCase()}
-                </div>
+                {test.doctor && (
+                  <div>
+                    <strong>Doctor:</strong> Dr. {test.doctor.name}
+                  </div>
+                )}
               </div>
 
               <div className="test-body">
-                <div className="test-info">
-                  <p><strong>Date:</strong> {formatDate(test.testDate)}</p>
-                  {test.doctor && (
-                    <p><strong>Doctor:</strong> Dr. {test.doctor.name}</p>
-                  )}
-                  {test.timerDuration && (
-                    <p><strong>Duration:</strong> {Math.floor(test.timerDuration / 60)}h {test.timerDuration % 60}m</p>
-                  )}
-                  {test.isSubmitted && test.score !== null && test.maxScore !== null && (
-                    <p className="test-score-info">
-                      <strong>Score:</strong> {test.score}/{test.maxScore} ({Math.round((test.score / test.maxScore) * 100)}%)
-                    </p>
-                  )}
+                <div className="test-type">
+                  <strong>Type:</strong> {test.testType}
                 </div>
-
-                {test.timerDuration && userRole === 'patient' && !test.isSubmitted && (
-                  <TestTimer test={test} />
-                )}
-
-                {Object.keys(test.bodyCheck || {}).some(key => test.bodyCheck[key]) && (
-                  <div className="body-check-display">
-                    <strong>Body Check:</strong>
-                    <div className="body-check-values">
-                      {test.bodyCheck.bloodPressure && <span>BP: {test.bodyCheck.bloodPressure}</span>}
-                      {test.bodyCheck.heartRate && <span>HR: {test.bodyCheck.heartRate} bpm</span>}
-                      {test.bodyCheck.temperature && <span>Temp: {test.bodyCheck.temperature}°F</span>}
-                      {test.bodyCheck.weight && <span>Weight: {test.bodyCheck.weight} kg</span>}
-                      {test.bodyCheck.height && <span>Height: {test.bodyCheck.height} cm</span>}
-                      {test.bodyCheck.bmi && <span>BMI: {test.bodyCheck.bmi}</span>}
-                      {test.bodyCheck.oxygenLevel && <span>O2: {test.bodyCheck.oxygenLevel}%</span>}
-                    </div>
-                    {test.bodyCheck.other && (
-                      <p className="other-obs">{test.bodyCheck.other}</p>
-                    )}
-                  </div>
-                )}
-
+                <div className="test-name">
+                  <strong>Test Name:</strong> {test.testName}
+                </div>
                 {test.testResults && (
                   <div className="test-results">
                     <strong>Results:</strong>
                     <p>{test.testResults}</p>
                   </div>
                 )}
-
-                {test.notes && (
-                  <div className="test-notes">
-                    <strong>Notes:</strong>
-                    <p>{test.notes}</p>
+                <div className="test-status" style={{ color: getStatusColor(test.status) }}>
+                  <strong>Status:</strong> {test.status.replace('_', ' ')}
+                </div>
+                {test.score !== null && (
+                  <div className="test-score">
+                    <strong>Score:</strong> {test.score}/{test.maxScore}
                   </div>
                 )}
               </div>
 
               <div className="test-actions">
-                {userRole === 'doctor' && (
-                  <button onClick={() => setSelectedTest(test)} className="update-button">
-                    Update
+                {userRole === 'patient' && test.status === 'pending' && (
+                  <button
+                    onClick={() => handleStartTest(test._id)}
+                    className="btn-primary"
+                  >
+                    Start Test
                   </button>
                 )}
-                {userRole === 'patient' && !test.isSubmitted && test.status === 'pending' && (
-                  <button onClick={() => setSubmissionTest(test)} className="submit-test-button">
-                    Start/Submit Test
+                {userRole === 'patient' && test.status === 'in_progress' && (
+                  <button
+                    onClick={() => setSelectedTest(test)}
+                    className="btn-primary"
+                  >
+                    Continue Test
+                  </button>
+                )}
+                {userRole === 'doctor' && (
+                  <button
+                    onClick={() => setSelectedTest(test)}
+                    className="btn-secondary"
+                  >
+                    View Details
                   </button>
                 )}
               </div>
@@ -189,69 +208,83 @@ const TestList = ({ patientId, userRole }) => {
         </div>
       )}
 
-      {/* Submission Modal */}
-      {submissionTest && userRole === 'patient' && (
-        <div className="modal-overlay" onClick={() => setSubmissionTest(null)}>
-          <div className="modal-content test-submission-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setSubmissionTest(null)}>×</button>
-            <TestSubmission 
-              test={submissionTest} 
-              onSuccess={() => {
-                setSubmissionTest(null);
-                fetchTests();
-              }}
-            />
-          </div>
-        </div>
+      {/* Test Timer Modal */}
+      {selectedTest && userRole === 'patient' && (
+        <TestTimer
+          test={selectedTest}
+          onClose={() => setSelectedTest(null)}
+          onSubmit={handleSubmitTest}
+        />
       )}
 
-      {/* Update Modal */}
+      {/* Test Submission Modal */}
+      {submissionTest && (
+        <TestSubmission
+          test={submissionTest}
+          onClose={() => setSubmissionTest(null)}
+          onSuccess={() => {
+            setSubmissionTest(null);
+            fetchTests();
+          }}
+        />
+      )}
+
+      {/* Test Update Modal for Doctors */}
       {selectedTest && userRole === 'doctor' && (
-        <div className="modal-overlay" onClick={() => setSelectedTest(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Update Test Record</h3>
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Update Test Results</h3>
+            <div className="test-details">
+              <p><strong>Patient:</strong> {selectedTest.patient?.name}</p>
+              <p><strong>Test:</strong> {selectedTest.testName}</p>
+              <p><strong>Type:</strong> {selectedTest.testType}</p>
+              <p><strong>Date:</strong> {formatDate(selectedTest.testDate)}</p>
+            </div>
+            
             <div className="form-group">
-              <label>Test Results</label>
+              <label>Test Results:</label>
               <textarea
-                value={updateForm.testResults || selectedTest.testResults || ''}
-                onChange={(e) => setUpdateForm({ ...updateForm, testResults: e.target.value })}
-                className="form-textarea"
+                value={updateForm.testResults}
+                onChange={(e) => setUpdateForm({...updateForm, testResults: e.target.value})}
+                placeholder="Enter test results"
                 rows="4"
-                placeholder="Enter test results..."
               />
             </div>
+
             <div className="form-group">
-              <label>Status</label>
+              <label>Notes:</label>
+              <textarea
+                value={updateForm.notes}
+                onChange={(e) => setUpdateForm({...updateForm, notes: e.target.value})}
+                placeholder="Additional notes"
+                rows="3"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Status:</label>
               <select
-                value={updateForm.status || selectedTest.status}
-                onChange={(e) => setUpdateForm({ ...updateForm, status: e.target.value })}
-                className="form-select"
+                value={updateForm.status}
+                onChange={(e) => setUpdateForm({...updateForm, status: e.target.value})}
               >
+                <option value="">Select Status</option>
                 <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
                 <option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
             </div>
-            <div className="form-group">
-              <label>Notes</label>
-              <textarea
-                value={updateForm.notes !== '' ? updateForm.notes : (selectedTest.notes || '')}
-                onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
-                className="form-textarea"
-                rows="3"
-                placeholder="Additional notes..."
-              />
-            </div>
+
             <div className="modal-actions">
-              <button onClick={() => handleUpdate(selectedTest._id)} className="submit-button">
+              <button
+                onClick={() => handleUpdateTest(selectedTest._id)}
+                className="btn-primary"
+              >
                 Update Test
               </button>
               <button
-                onClick={() => {
-                  setSelectedTest(null);
-                  setUpdateForm({ testResults: '', notes: '', status: '' });
-                }}
-                className="cancel-button"
+                onClick={() => setSelectedTest(null)}
+                className="btn-secondary"
               >
                 Cancel
               </button>
@@ -264,4 +297,3 @@ const TestList = ({ patientId, userRole }) => {
 };
 
 export default TestList;
-

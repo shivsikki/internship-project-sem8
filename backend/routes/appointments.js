@@ -107,6 +107,18 @@ router.post('/create', verifyToken, async (req, res) => {
     });
     await patientNotification.save();
 
+    // Emit real-time update
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('appointment:updated', {
+        action: 'created',
+        appointment: appointment,
+        userId: patientId,
+        doctorId: doctorId,
+        timestamp: new Date().toISOString()
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'Appointment booked successfully',

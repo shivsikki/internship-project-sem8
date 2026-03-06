@@ -93,6 +93,7 @@ app.use('/api/tests', require('./routes/tests'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/ai', require('./routes/ai'));
 
 // Health check
 app.get('/api/health', (req, res) => {
