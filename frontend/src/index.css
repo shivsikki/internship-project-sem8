@@ -1,0 +1,59 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Matt tone palette */
+  --color-bg: #f5f4f2;
+  --color-bg-alt: #ebeae8;
+  --color-surface: #ffffff;
+  --color-surface-hover: #fafaf9;
+  --color-text: #1a1a1a;
+  --color-text-muted: #5c5c5c;
+  --color-text-subtle: #8a8a8a;
+  --color-border: #e2e1df;
+  --color-border-light: #ecebe9;
+  --color-accent: #4a5568;
+  --color-accent-hover: #3d4852;
+  --color-sidebar: #28241e;
+  --color-sidebar-hover: #363634;
+  --color-sidebar-active: #3d3d3a;
+  --color-success: #4a5d4a;
+  --color-error: #6b4a4a;
+  --color-warning: #6b5d4a;
+  --shadow-sm: 0 1px 3px rgba(26, 26, 26, 0.06);
+  --shadow-md: 0 4px 12px rgba(26, 26, 26, 0.08);
+  --shadow-lg: 0 8px 24px rgba(26, 26, 26, 0.1);
+  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+}
+
+code {
+  font-family: 'Source Sans 3', monospace;
+}
+
+.empty-state-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 280px;
+  padding: 48px 24px;
+}
