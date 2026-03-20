@@ -1,0 +1,32 @@
+.meteors-container {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1; /* Above background, below app-content */
+}
+
+.hospital-cross {
+  position: absolute;
+  top: -10vh; /* Start slightly above viewport */
+  color: rgba(255, 255, 255, 0.4);
+  animation: fall-down linear infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+.hospital-cross svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes fall-down {
+  0% {
+    transform: translateY(0vh);
+  }
+  100% {
+    transform: translateY(120vh);
+  }
+}

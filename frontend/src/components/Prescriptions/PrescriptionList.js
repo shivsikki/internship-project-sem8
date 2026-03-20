@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import GlitchText from '../GlitchText/GlitchText';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import './Prescriptions.css';
 
 const PrescriptionList = ({ patientId, userRole }) => {
@@ -45,23 +46,34 @@ const PrescriptionList = ({ patientId, userRole }) => {
   };
 
   if (loading) {
-    return <div className="loading">Loading prescriptions...</div>;
+    return <div className="prescriptions-loading">Loading prescriptions...</div>;
   }
 
   return (
     <div className="prescriptions-list-container">
-      <h2>Prescriptions</h2>
+      <header className="prescriptions-list-hero">
+        <div className="prescriptions-hero-bg" aria-hidden="true" />
+        <div className="prescriptions-hero-content">
+          <p className="prescriptions-hero-eyebrow">Health records</p>
+          <AnimatedHeading text="Prescriptions" />
+          <p className="prescriptions-hero-subtitle">Your diagnosis and medications at a glance.</p>
+        </div>
+      </header>
 
       {prescriptions.length === 0 ? (
-        <div className="empty-state-center">
+        <div className="empty-state-center page-block">
           <GlitchText speed={1} enableShadows enableOnHover={false}>
             No Prescriptions
           </GlitchText>
         </div>
       ) : (
         <div className="prescriptions-grid">
-          {prescriptions.map((prescription) => (
-            <div key={prescription._id} className="prescription-card-item">
+          {prescriptions.map((prescription, index) => (
+            <div
+              key={prescription._id}
+              className="prescription-card-item card-animated"
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
               <div className="prescription-header">
                 <div>
                   <strong>Date:</strong> {formatDate(prescription.date)}

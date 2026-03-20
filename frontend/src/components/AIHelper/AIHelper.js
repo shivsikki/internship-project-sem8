@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import './AIHelper.css';
 
 const AIHelper = () => {
@@ -7,6 +8,21 @@ const AIHelper = () => {
   const [answer, setAnswer] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('ai_helper_prefill');
+      if (!raw) return;
+      const payload = JSON.parse(raw);
+      if (payload?.question && typeof payload.question === 'string') {
+        setQuestion(payload.question);
+      }
+    } catch {
+      // ignore
+    } finally {
+      localStorage.removeItem('ai_helper_prefill');
+    }
+  }, []);
 
   const handleAsk = async (e) => {
     e.preventDefault();
@@ -80,7 +96,7 @@ const AIHelper = () => {
     <div className="ai-helper-page">
       <div className="ai-helper-header">
         <div>
-          <h2>AI Helper</h2>
+          <AnimatedHeading text="AI Helper" />
           <p>
             Ask general questions about medicines, tests, or health. Answers are for information only and{' '}
             <strong>do not replace your doctor&apos;s advice</strong>.

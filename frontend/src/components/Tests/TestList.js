@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import GlitchText from '../GlitchText/GlitchText';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import './Tests.css';
 
 const TestList = ({ patientId, userRole }) => {
@@ -92,7 +93,7 @@ const TestList = ({ patientId, userRole }) => {
 
   return (
     <div className="tests-list-container">
-      <h2>Tests & Medical Records</h2>
+      <AnimatedHeading text="Tests & Medical Records" />
 
       {tests.length === 0 ? (
         <div className="empty-state-center">

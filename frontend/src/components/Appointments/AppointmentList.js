@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import PaymentButton from '../Payments/PaymentButton';
 import GlitchText from '../GlitchText/GlitchText';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import './Appointments.css';
 
 const AppointmentList = ({ userRole }) => {
@@ -75,21 +76,6 @@ const AppointmentList = ({ userRole }) => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'confirmed':
-        return '#4CAF50';
-      case 'pending':
-        return '#FF9800';
-      case 'completed':
-        return '#2196F3';
-      case 'cancelled':
-        return '#F44336';
-      default:
-        return '#666';
-    }
-  };
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -101,97 +87,155 @@ const AppointmentList = ({ userRole }) => {
   };
 
   if (loading) {
-    return <div className="loading">Loading appointments...</div>;
+    return <div className="appointments-loading">Loading appointments...</div>;
   }
+
+  const pageTitle = userRole === 'patient' ? 'My appointments' : userRole === 'doctor' ? 'Patient appointments' : 'All appointments';
+  const pageSubtitle = userRole === 'patient'
+    ? 'View and manage your scheduled visits.'
+    : userRole === 'doctor'
+      ? 'Manage your schedule and patient visits.'
+      : 'Overview of all clinic appointments.';
 
   return (
     <div className="appointments-list-container">
-      <h2>
-        {userRole === 'patient' && 'My Appointments'}
-        {userRole === 'doctor' && 'Patient Appointments'}
-        {userRole === 'admin' && 'All Appointments'}
-      </h2>
+      <header className="appointments-list-hero">
+        <div className="appointments-hero-bg" aria-hidden="true" />
+        <div className="appointments-hero-content">
+          <p className="appointments-hero-eyebrow">Appointments</p>
+          <AnimatedHeading text={pageTitle} />
+          <p className="appointments-hero-subtitle">{pageSubtitle}</p>
+        </div>
+      </header>
 
       {appointments.length === 0 ? (
-        <div className="empty-state-center">
+        <div className="empty-state-center page-block">
           <GlitchText speed={1} enableShadows enableOnHover={false}>
             No Appointments
           </GlitchText>
         </div>
       ) : (
         <div className="appointments-grid">
-          {appointments.map((appointment) => (
-            <div key={appointment._id} className="appointment-card-item">
-              <div className="appointment-header">
-                <div className="appointment-status" style={{ backgroundColor: getStatusColor(appointment.status) }}>
-                  {appointment.status.toUpperCase()}
+          {appointments.map((appointment, index) => (
+            <div
+              key={appointment._id}
+              className={`appointment-card-item card-animated status-${appointment.status}`}
+              style={{ animationDelay: `${index * 0.05}s` }}
+            >
+              <div className="appointment-card-top">
+                <div className="appointment-date-block">
+                  <span className="appointment-date-main">{formatDate(appointment.appointmentDate)}</span>
+                  <span className="appointment-time">{appointment.appointmentTime}</span>
                 </div>
-                <div className="appointment-date-time">
-                  <strong>{formatDate(appointment.appointmentDate)}</strong>
-                  <span>{appointment.appointmentTime}</span>
-                </div>
+                <span className={`appointment-status-pill status-${appointment.status}`}>
+                  {appointment.status}
+                </span>
               </div>
 
-              <div className="appointment-body">
+              <div className="appointment-card-body">
                 {userRole === 'patient' && (
-                  <div className="appointment-info">
-                    <p><strong>Doctor:</strong> Dr. {appointment.doctor?.name}</p>
-                    <p><strong>Specialization:</strong> {appointment.doctor?.specialization || 'General'}</p>
-                    <p><strong>Reason:</strong> {appointment.reason}</p>
+                  <div className="appointment-details">
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Doctor</span>
+                      <span className="detail-value">Dr. {appointment.doctor?.name}</span>
+                    </div>
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Specialization</span>
+                      <span className="detail-value">{appointment.doctor?.specialization || 'General'}</span>
+                    </div>
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Reason</span>
+                      <span className="detail-value">{appointment.reason}</span>
+                    </div>
                     {appointment.fee > 0 && (
                       <>
-                        <p><strong>Fee:</strong> ₹{appointment.fee}</p>
+                        <div className="appointment-detail-row">
+                          <span className="detail-label">Fee</span>
+                          <span className="detail-value">₹{appointment.fee}</span>
+                        </div>
                         {appointment.paymentStatus === 'pending' && (
-                          <div style={{ marginTop: '15px' }}>
+                          <div className="appointment-payment-cta">
                             <PaymentButton
                               amount={appointment.fee}
                               appointmentId={appointment._id}
                               description={`Payment for appointment with Dr. ${appointment.doctor?.name}`}
-                              onSuccess={() => {
-                                fetchAppointments();
-                              }}
+                              onSuccess={() => fetchAppointments()}
                             />
                           </div>
                         )}
                         {appointment.paymentStatus === 'paid' && (
-                          <p style={{ color: '#4CAF50', fontWeight: '600', marginTop: '10px' }}>
-                            Payment Completed
-                          </p>
+                          <div className="payment-badge">Payment completed</div>
                         )}
                       </>
                     )}
                     {appointment.notes && (
-                      <p><strong>Notes:</strong> {appointment.notes}</p>
+                      <div className="appointment-detail-row">
+                        <span className="detail-label">Notes</span>
+                        <span className="detail-value">{appointment.notes}</span>
+                      </div>
                     )}
                   </div>
                 )}
 
                 {userRole === 'doctor' && (
-                  <div className="appointment-info">
-                    <p><strong>Patient:</strong> {appointment.patient?.name}</p>
-                    <p><strong>Email:</strong> {appointment.patient?.email}</p>
+                  <div className="appointment-details">
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Patient</span>
+                      <span className="detail-value">{appointment.patient?.name}</span>
+                    </div>
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Email</span>
+                      <span className="detail-value">{appointment.patient?.email}</span>
+                    </div>
                     {appointment.patient?.phone && (
-                      <p><strong>Phone:</strong> {appointment.patient?.phone}</p>
+                      <div className="appointment-detail-row">
+                        <span className="detail-label">Phone</span>
+                        <span className="detail-value">{appointment.patient?.phone}</span>
+                      </div>
                     )}
-                    <p><strong>Reason:</strong> {appointment.reason}</p>
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Reason</span>
+                      <span className="detail-value">{appointment.reason}</span>
+                    </div>
                     {appointment.notes && (
-                      <p><strong>My Notes:</strong> {appointment.notes}</p>
+                      <div className="appointment-detail-row">
+                        <span className="detail-label">My notes</span>
+                        <span className="detail-value">{appointment.notes}</span>
+                      </div>
                     )}
                     {appointment.fee > 0 && (
-                      <p><strong>Fee:</strong> ₹{appointment.fee}</p>
+                      <div className="appointment-detail-row">
+                        <span className="detail-label">Fee</span>
+                        <span className="detail-value">₹{appointment.fee}</span>
+                      </div>
                     )}
                   </div>
                 )}
 
                 {userRole === 'admin' && (
-                  <div className="appointment-info">
-                    <p><strong>Patient:</strong> {appointment.patient?.name}</p>
-                    <p><strong>Doctor:</strong> Dr. {appointment.doctor?.name}</p>
-                    <p><strong>Reason:</strong> {appointment.reason}</p>
+                  <div className="appointment-details">
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Patient</span>
+                      <span className="detail-value">{appointment.patient?.name}</span>
+                    </div>
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Doctor</span>
+                      <span className="detail-value">Dr. {appointment.doctor?.name}</span>
+                    </div>
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Reason</span>
+                      <span className="detail-value">{appointment.reason}</span>
+                    </div>
                     {appointment.fee > 0 && (
-                      <p><strong>Fee:</strong> ₹{appointment.fee}</p>
+                      <div className="appointment-detail-row">
+                        <span className="detail-label">Fee</span>
+                        <span className="detail-value">₹{appointment.fee}</span>
+                      </div>
                     )}
-                    <p><strong>Payment:</strong> {appointment.paymentStatus}</p>
+                    <div className="appointment-detail-row">
+                      <span className="detail-label">Payment</span>
+                      <span className="detail-value">{appointment.paymentStatus}</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -214,8 +258,8 @@ const AppointmentList = ({ userRole }) => {
       {/* Update Modal */}
       {selectedAppointment && (userRole === 'doctor' || userRole === 'admin') && (
         <div className="modal-overlay" onClick={() => setSelectedAppointment(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Update Appointment</h3>
+          <div className="modal-content modal-content-animated" onClick={(e) => e.stopPropagation()}>
+            <h3 className="section-title">Update appointment</h3>
             <div className="form-group">
               <label>Status</label>
               <select

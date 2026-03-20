@@ -5,24 +5,27 @@
 }
 
 :root {
-  /* Matt tone palette */
-  --color-bg: #f5f4f2;
-  --color-bg-alt: #ebeae8;
+  /* User Palette */
+  --color-bg: #FCEEA7;
+  --color-bg-alt: #FCD0D0;
   --color-surface: #ffffff;
-  --color-surface-hover: #fafaf9;
-  --color-text: #1a1a1a;
-  --color-text-muted: #5c5c5c;
-  --color-text-subtle: #8a8a8a;
-  --color-border: #e2e1df;
-  --color-border-light: #ecebe9;
-  --color-accent: #4a5568;
-  --color-accent-hover: #3d4852;
-  --color-sidebar: #28241e;
-  --color-sidebar-hover: #363634;
-  --color-sidebar-active: #3d3d3a;
-  --color-success: #4a5d4a;
-  --color-error: #6b4a4a;
-  --color-warning: #6b5d4a;
+  --color-surface-hover: rgba(252, 238, 167, 0.2);
+  --color-text: #355C6E;
+  --color-text-muted: rgba(53, 92, 110, 0.7);
+  --color-text-subtle: rgba(53, 92, 110, 0.5);
+  --color-border: #A1D4CE;
+  --color-border-light: rgba(161, 212, 206, 0.3);
+  --color-accent: #A1D4CE;
+  --color-accent-hover: #8bbab4;
+  --color-primary: #FA837F;
+  --color-primary-muted: rgba(250, 131, 127, 0.12);
+  --color-primary-border: rgba(250, 131, 127, 0.25);
+  --color-sidebar: #355C6E;
+  --color-sidebar-hover: #294857;
+  --color-sidebar-active: #1d3642;
+  --color-success: #A1D4CE;
+  --color-error: #FA837F;
+  --color-warning: #FCEEA7;
   --shadow-sm: 0 1px 3px rgba(26, 26, 26, 0.06);
   --shadow-md: 0 4px 12px rgba(26, 26, 26, 0.08);
   --shadow-lg: 0 8px 24px rgba(26, 26, 26, 0.1);
@@ -41,7 +44,36 @@ body {
   line-height: 1.6;
 }
 
-h1, h2, h3, h4, h5, h6 {
+.app-background {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background-color: #2c5e63;
+  /* Dark teal base */
+}
+
+/* Dynamic gradient blur background */
+.app-background::before {
+  content: "";
+  position: fixed;
+  inset: -10vw;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(ellipse at 15% 50%, rgba(106, 166, 170, 0.8) 0%, transparent 60%),
+    radial-gradient(ellipse at 85% 30%, rgba(225, 199, 165, 0.8) 0%, transparent 60%),
+    radial-gradient(ellipse at 40% 70%, rgba(243, 230, 215, 0.9) 0%, transparent 65%),
+    radial-gradient(ellipse at 60% 85%, rgba(44, 94, 99, 0.5) 0%, transparent 40%),
+    radial-gradient(ellipse at 60% 10%, rgba(106, 166, 170, 0.6) 0%, transparent 50%);
+  opacity: 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
   font-weight: 500;
 }

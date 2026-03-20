@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import './Emergency.css';
 
 const Emergency = () => {
@@ -41,7 +42,7 @@ const Emergency = () => {
     <div className="emergency-page">
       <div className="emergency-header">
         <div>
-          <h2>Emergency</h2>
+          <AnimatedHeading text="Emergency" />
           <p>If you have a medical emergency, contact local emergency services immediately.</p>
         </div>
       </div>

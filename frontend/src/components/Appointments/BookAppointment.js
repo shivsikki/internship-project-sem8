@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import './Appointments.css';
 
 const SPECIALTIES = [
@@ -131,18 +132,29 @@ const BookAppointment = () => {
 
   return (
     <div className="book-appointment-page">
-      {/* Part 1: Full-screen specialty selector */}
-      <section className="book-appointment-section-1">
-        <h2 className="section-1-title">Select a Department</h2>
+      {/* Hero */}
+      <header className="book-appointment-hero">
+        <div className="book-hero-bg" aria-hidden="true" />
+        <div className="book-hero-content">
+          <p className="book-hero-eyebrow">Appointments</p>
+          <AnimatedHeading text="Book an appointment" />
+          <p className="book-hero-subtitle">Choose a department, pick a doctor, and schedule your visit.</p>
+        </div>
+      </header>
+
+      {/* Part 1: Specialty selector */}
+      <section className="book-appointment-section-1 page-block">
+        <h2 className="section-title">Select a department</h2>
         <p className="section-1-hint">Choose a specialty to view available doctors</p>
         <div className="specialty-grid">
-          {SPECIALTIES.map((specialty) => (
+          {SPECIALTIES.map((specialty, index) => (
             <button
               key={specialty}
               type="button"
               className={`specialty-box ${selectedSpecialty === specialty ? 'active' : ''}`}
               onClick={() => handleSpecialtyClick(specialty)}
               title={SPECIALTY_DESCRIPTIONS[specialty]}
+              style={{ animationDelay: `${index * 0.04}s` }}
             >
               <span className="specialty-box-label">{specialty}</span>
               <span className="specialty-tooltip">{SPECIALTY_DESCRIPTIONS[specialty]}</span>
@@ -151,12 +163,11 @@ const BookAppointment = () => {
         </div>
       </section>
 
-      {/* Part 2 & 3: Form and info - scroll down */}
+      {/* Part 2 & 3: Form and info */}
       <section className="book-appointment-section-2">
-        {/* Part 2: Appointment form */}
-        <div className="book-appointment-part book-appointment-part-2">
-        <div className="appointment-card appointment-book-form">
-          <h2>Book Appointment</h2>
+        <div className="book-appointment-part book-appointment-part-2 page-block">
+          <div className="appointment-card appointment-book-form card-animated">
+            <h2 className="section-title">Book appointment</h2>
 
           {error && <div className="error-message">{error}</div>}
           {success && <div className="success-message">{success}</div>}
@@ -236,10 +247,9 @@ const BookAppointment = () => {
         </div>
       </div>
 
-        {/* Part 3: Additional info */}
-        <div className="book-appointment-part book-appointment-part-3">
-          <div className="appointment-card appointment-book-form info-card">
-            <h2>Additional Info</h2>
+        <div className="book-appointment-part book-appointment-part-3 page-block">
+          <div className="appointment-card appointment-book-form info-card card-animated">
+            <h2 className="section-title">Additional info</h2>
             <div className="info-content">
               <div className="info-section">
                 <h3>Clinic Hours</h3>

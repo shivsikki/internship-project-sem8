@@ -1,3 +1,40 @@
+.auth-page {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.auth-wave {
+  content: "";
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 999px;
+  transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95), transparent 65%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 1;
+  animation: authWave 1.3s ease-out forwards;
+}
+
+@keyframes authWave {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.85;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(7.5);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(11);
+    opacity: 0;
+  }
+}
+
 .auth-container {
   min-height: 100vh;
   display: flex;
@@ -5,7 +42,7 @@
   justify-content: center;
   padding: 24px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .auth-card {
@@ -16,21 +53,45 @@
   padding: 30px;
   width: 100%;
   max-width: 440px;
-  animation: slideUp 0.5s ease-out;
+  transform: translateY(100vh);
+  opacity: 0;
 }
 
 .auth-card.auth-card-wide {
   max-width: 980px;
 }
 
-@keyframes slideUp {
-  from {
+.auth-card.auth-card-enter {
+  animation: authCardSlideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.auth-card.auth-card-exit {
+  animation: authCardSlideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes authCardSlideUp {
+  0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(100vh);
   }
-  to {
+  60% {
+    opacity: 1;
+    transform: translateY(-8px);
+  }
+  100% {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes authCardSlideDown {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100vh);
   }
 }
 
@@ -177,6 +238,95 @@
 
 .auth-footer a:hover {
   color: var(--color-accent-hover);
+}
+
+.auth-success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  z-index: 2;
+}
+
+.auth-video-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.06);
+  /* Avoid heavy repaint cost while video is playing */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-video-wrap {
+  position: relative;
+  width: min(720px, 86vw);
+  max-height: 58vh;
+  aspect-ratio: 16 / 9;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.14);
+  contain: strict;
+}
+
+.auth-success-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  display: block;
+  /* Help the browser keep rendering smooth */
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Keep edges clean for performance (no blurred overlays/masks). */
+
+.auth-success-check {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: authSuccessPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.auth-success-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 999px;
+  background: #e2f5ea;
+  border: 2px solid #4a5d4a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px rgba(26, 26, 26, 0.1);
+}
+
+.auth-success-tick {
+  font-size: 2.25rem;
+  color: #4a5d4a;
+}
+
+.auth-success-check p {
+  font-size: 0.98rem;
+  color: var(--color-text);
+}
+
+@keyframes authSuccessPop {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.85);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .error-message {

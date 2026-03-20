@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import GlitchText from '../GlitchText/GlitchText';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import './Payments.css';
 
 const PaymentList = ({ userRole }) => {
@@ -66,7 +67,7 @@ const PaymentList = ({ userRole }) => {
   return (
     <div className="payments-list-container">
       <div className="payments-header">
-        <h2>Payments</h2>
+        <AnimatedHeading text="Payments" />
         {userRole === 'admin' && (
           <div className="revenue-card">
             <strong>Total Revenue:</strong>
