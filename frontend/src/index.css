@@ -6,7 +6,7 @@
 
 :root {
   /* User Palette */
-  --color-bg: #FCEEA7;
+  --color-bg: #fcdda7;
   --color-bg-alt: #FCD0D0;
   --color-surface: #ffffff;
   --color-surface-hover: rgba(252, 238, 167, 0.2);
@@ -48,8 +48,8 @@ body {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  background-color: #2c5e63;
-  /* Dark teal base */
+  background-color: #f6f7f1;
+  /* Earthy sage base */
 }
 
 /* Dynamic gradient blur background */
@@ -60,12 +60,12 @@ body {
   pointer-events: none;
   z-index: 0;
   background-image:
-    radial-gradient(ellipse at 15% 50%, rgba(106, 166, 170, 0.8) 0%, transparent 60%),
-    radial-gradient(ellipse at 85% 30%, rgba(225, 199, 165, 0.8) 0%, transparent 60%),
-    radial-gradient(ellipse at 40% 70%, rgba(243, 230, 215, 0.9) 0%, transparent 65%),
-    radial-gradient(ellipse at 60% 85%, rgba(44, 94, 99, 0.5) 0%, transparent 40%),
-    radial-gradient(ellipse at 60% 10%, rgba(106, 166, 170, 0.6) 0%, transparent 50%);
-  opacity: 1;
+    radial-gradient(ellipse at 12% 24%, rgba(201, 211, 180, 0.38) 0%, transparent 60%),
+    radial-gradient(ellipse at 84% 22%, rgba(203, 173, 145, 0.26) 0%, transparent 58%),
+    radial-gradient(ellipse at 34% 74%, rgba(239, 229, 211, 0.44) 0%, transparent 64%),
+    radial-gradient(ellipse at 72% 84%, rgba(138, 116, 92, 0.16) 0%, transparent 46%),
+    radial-gradient(ellipse at 60% 8%, rgba(165, 182, 153, 0.28) 0%, transparent 48%);
+  opacity: 0.86;
 }
 
 h1,

@@ -10,6 +10,7 @@ import TestList from '../Tests/TestList';
 import PaymentList from '../Payments/PaymentList';
 import AIHelper from '../AIHelper/AIHelper';
 import Emergency from '../Emergency/Emergency';
+import MediVault from '../MediVault/MediVault';
 import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import './Dashboard.css';
 
@@ -286,11 +287,17 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
     return days.map((day, i) => {
       const count = counts[i];
       const height = maxCount > 0 ? Math.max(15, Math.round((count / maxCount) * 100)) : 15;
+      const intensity = maxCount > 0 ? count / maxCount : 0;
+      // Earthy green palette: vary hue per day + scale opacity by intensity.
+      const hueByDay = [120, 135, 110, 145, 105, 128, 116];
+      const hue = hueByDay[i] ?? 120;
+      const lightness = count > 0 ? 36 : 50;
+      const alpha = count > 0 ? 0.18 + 0.60 * intensity : 0.10;
       return {
         day,
         count,
         height: count > 0 ? height : 15,
-        shade: count > 0 ? '#ae6e56ff' : '#DFBCAD',
+        shade: `hsla(${hue}, 24%, ${lightness}%, ${alpha})`,
         isPeak: count > 0,
       };
     });
@@ -362,6 +369,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
     navItems.push({ id: 'prescriptions', label: 'My Prescriptions' });
     navItems.push({ id: 'tests', label: 'My Tests' });
     navItems.push({ id: 'payments', label: 'Payments' });
+    navItems.push({ id: 'medivault', label: 'MediVault' });
     navItems.push({ id: 'ai-helper', label: 'AI Helper' });
     navItems.push({ id: 'emergency', label: 'Emergency' });
   } else if (user.role === 'doctor') {
@@ -430,6 +438,15 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
         );
+      case 'medivault':
+        return (
+          <svg {...common}>
+            <path d="M19 7l-4-4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-1-1.7z" />
+            <path d="M12 7v14" />
+            <path d="M9 10h6" />
+            <path d="M9 14h6" />
+          </svg>
+        );
       case 'ai-helper':
         return (
           <svg {...common}>
@@ -461,8 +478,14 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
         <div className="sidebar-header cafe-header">
           {!isSidebarCollapsed && (
             <div className="cafe-brand">
+              <img 
+                src="/images/hippocrates.png" 
+                alt="Hippocrates Lab Logo" 
+                className="sidebar-logo-img"
+              />
               <div className="cafe-brand-text">
-                <div className="cafe-title">Your Health Manager</div>
+                <div className="cafe-title">Hippocrates Lab</div>
+                <div className="cafe-subtitle">navigate freely to use our features</div>
               </div>
             </div>
           )}
@@ -723,39 +746,295 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
                   )}
                   {user.role === 'doctor' && (
                     <>
-                      <div className="metric-lg card-animated" style={{ animationDelay: '0.05s' }}>
-                        <div className="metric-lg-head">
-                          <div>
-                            <p className="metric-lg-label">Total Appointments</p>
-                            <h3 className="metric-lg-value">{stats.appointments?.length || 0}</h3>
-                          </div>
-                          {trendPill && (
-                            <div className={`metric-lg-pill metric-lg-pill-${trendPill.variant}`}>
-                              {trendPill.label}
+                      {/* Section 1: Analytics & Statistics */}
+                      <section className="doctor-analytics-section">
+                        <div className="analytics-header">
+                          <h2 className="analytics-title">Practice Analytics</h2>
+                          <p className="analytics-subtitle">Real-time insights into your medical practice</p>
+                        </div>
+                        
+                        <div className="analytics-grid">
+                          {/* Age Distribution */}
+                          <div className="analytics-card age-distribution-card">
+                            <div className="analytics-card-header">
+                              <h3 className="analytics-card-title">Patient Age Distribution</h3>
+                              <div className="analytics-card-icon">👥</div>
                             </div>
-                          )}
-                        </div>
-                        <div className="metric-lg-bars">
-                          {weekdayBars.map((b) => (
-                            <div key={b.day} className="metric-lg-bar-wrap">
-                              <div className="metric-lg-bar-num">{b.count}</div>
-                              <div
-                                className={`metric-lg-bar-fill ${b.isPeak ? 'is-peak' : ''}`}
-                                style={{ height: `${b.height}%`, background: b.shade }}
-                              />
-                              <div className="metric-lg-bar-day">{b.day}</div>
+                            <div className="age-chart-container">
+                              <div className="age-bars">
+                                <div className="age-bar-group">
+                                  <span className="age-label">0-18</span>
+                                  <div className="age-bar-track">
+                                    <div className="age-bar-fill" style={{ width: '15%' }}></div>
+                                  </div>
+                                  <span className="age-percentage">15%</span>
+                                </div>
+                                <div className="age-bar-group">
+                                  <span className="age-label">19-35</span>
+                                  <div className="age-bar-track">
+                                    <div className="age-bar-fill" style={{ width: '35%' }}></div>
+                                  </div>
+                                  <span className="age-percentage">35%</span>
+                                </div>
+                                <div className="age-bar-group">
+                                  <span className="age-label">36-50</span>
+                                  <div className="age-bar-track">
+                                    <div className="age-bar-fill" style={{ width: '28%' }}></div>
+                                  </div>
+                                  <span className="age-percentage">28%</span>
+                                </div>
+                                <div className="age-bar-group">
+                                  <span className="age-label">51+</span>
+                                  <div className="age-bar-track">
+                                    <div className="age-bar-fill" style={{ width: '22%' }}></div>
+                                  </div>
+                                  <span className="age-percentage">22%</span>
+                                </div>
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="metric-lg card-animated" style={{ animationDelay: '0.1s' }}>
-                        <div className="metric-lg-head">
-                          <div>
-                            <p className="metric-lg-label">Today</p>
-                            <h3 className="metric-lg-value">{todayAppointments.length}</h3>
+                          </div>
+
+                          {/* Gender Ratio */}
+                          <div className="analytics-card gender-ratio-card">
+                            <div className="analytics-card-header">
+                              <h3 className="analytics-card-title">Gender Distribution</h3>
+                              <div className="analytics-card-icon">⚧</div>
+                            </div>
+                            <div className="gender-chart-container">
+                              <div className="gender-donut-chart">
+                                <svg viewBox="0 0 100 100" className="gender-donut">
+                                  <circle cx="50" cy="50" r="40" fill="none" stroke="#e8f5e8" strokeWidth="12"/>
+                                  <circle cx="50" cy="50" r="40" fill="none" stroke="#2d472d" strokeWidth="12"
+                                    strokeDasharray="75.4 251.2" strokeDashoffset="0" transform="rotate(-90 50 50)"/>
+                                  <circle cx="50" cy="50" r="40" fill="none" stroke="#4a5d4a" strokeWidth="12"
+                                    strokeDasharray="62.8 251.2" strokeDashoffset="-75.4" transform="rotate(-90 50 50)"/>
+                                </svg>
+                                <div className="gender-center-text">
+                                  <div className="gender-total">1,247</div>
+                                  <div className="gender-label">Patients</div>
+                                </div>
+                              </div>
+                              <div className="gender-legend">
+                                <div className="gender-legend-item">
+                                  <div className="gender-legend-color" style={{ background: '#2d472d' }}></div>
+                                  <span className="gender-legend-text">Male (48%)</span>
+                                </div>
+                                <div className="gender-legend-item">
+                                  <div className="gender-legend-color" style={{ background: '#4a5d4a' }}></div>
+                                  <span className="gender-legend-text">Female (40%)</span>
+                                </div>
+                                <div className="gender-legend-item">
+                                  <div className="gender-legend-color" style={{ background: '#e8f5e8' }}></div>
+                                  <span className="gender-legend-text">Other (12%)</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Monthly Revenue Trend */}
+                          <div className="analytics-card revenue-trend-card">
+                            <div className="analytics-card-header">
+                              <h3 className="analytics-card-title">Revenue Trend</h3>
+                              <div className="analytics-card-icon">📈</div>
+                            </div>
+                            <div className="revenue-chart-container">
+                              <div className="revenue-sparkline">
+                                <svg viewBox="0 0 200 60" className="revenue-line">
+                                  <polyline
+                                    fill="none"
+                                    stroke="#4a5d4a"
+                                    strokeWidth="2"
+                                    points="10,45 35,35 60,38 85,25 110,30 135,15 160,20 185,10 190,12"
+                                  />
+                                  <linearGradient id="revenueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stopColor="#4a5d4a" stopOpacity="0.3"/>
+                                    <stop offset="100%" stopColor="#4a5d4a" stopOpacity="0"/>
+                                  </linearGradient>
+                                  <polygon
+                                    fill="url(#revenueGradient)"
+                                    points="10,45 35,35 60,38 85,25 110,30 135,15 160,20 185,10 190,12 190,60 10,60"
+                                  />
+                                </svg>
+                              </div>
+                              <div className="revenue-stats">
+                                <div className="revenue-stat-item">
+                                  <span className="revenue-stat-value">₹2.4L</span>
+                                  <span className="revenue-stat-label">This Month</span>
+                                </div>
+                                <div className="revenue-stat-item">
+                                  <span className="revenue-stat-value">+18%</span>
+                                  <span className="revenue-stat-label">Growth</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </section>
+
+                      {/* Section 2: Clinical Operations */}
+                      <section className="doctor-clinical-section">
+                        <div className="clinical-header">
+                          <h2 className="clinical-title">Clinical Operations</h2>
+                          <p className="clinical-subtitle">Manage your daily clinical activities</p>
+                        </div>
+                        
+                        <div className="clinical-grid">
+                          {/* Current Patient */}
+                          <div className="clinical-card current-patient-card">
+                            <div className="clinical-card-header">
+                              <h3 className="clinical-card-title">Current Patient</h3>
+                              <div className="clinical-status-badge live">LIVE</div>
+                            </div>
+                            {todayAppointments.length > 0 ? (
+                              <div className="current-patient-info">
+                                <div className="patient-avatar-large">
+                                  {todayAppointments[0].patient?.name?.charAt(0) || 'P'}
+                                </div>
+                                <div className="patient-details">
+                                  <h4 className="patient-name">{todayAppointments[0].patient?.name || 'Patient Name'}</h4>
+                                  <p className="patient-reason">{todayAppointments[0].reason || 'General Consultation'}</p>
+                                  <div className="patient-time-info">
+                                    <span className="appointment-time">{formatTimeOnly(todayAppointments[0].appointmentTime)}</span>
+                                    <span className="appointment-duration">~30 mins</span>
+                                  </div>
+                                </div>
+                                <div className="patient-actions">
+                                  <button className="patient-action-btn primary">View Records</button>
+                                  <button className="patient-action-btn secondary">Prescribe</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="no-current-patient">
+                                <div className="empty-state-icon">👨‍⚕️</div>
+                                <p>No active consultation</p>
+                                <span className="empty-state-text">Next appointment will appear here</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Upcoming Appointments */}
+                          <div className="clinical-card upcoming-appointments-card">
+                            <div className="clinical-card-header">
+                              <h3 className="clinical-card-title">Today's Schedule</h3>
+                              <div className="appointment-count">{todayAppointments.length}</div>
+                            </div>
+                            <div className="appointments-timeline">
+                              {todayAppointments.slice(0, 4).map((apt, index) => (
+                                <div key={apt._id} className="timeline-item">
+                                  <div className="timeline-time">
+                                    {formatTimeOnly(apt.appointmentTime)}
+                                  </div>
+                                  <div className="timeline-dot"></div>
+                                  <div className="timeline-content">
+                                    <div className="timeline-patient">{apt.patient?.name || 'Patient'}</div>
+                                    <div className="timeline-reason">{apt.reason || 'Consultation'}</div>
+                                  </div>
+                                  <div className={`timeline-status ${apt.status}`}>{apt.status}</div>
+                                </div>
+                              ))}
+                              {todayAppointments.length === 0 && (
+                                <div className="no-appointments">
+                                  <span>No appointments today</span>
+                                </div>
+                              )}
+                            </div>
+                            <button className="view-all-btn" onClick={() => setActiveTab('appointments')}>
+                              View Full Schedule
+                            </button>
+                          </div>
+
+                          {/* Active Tests */}
+                          <div className="clinical-card active-tests-card">
+                            <div className="clinical-card-header">
+                              <h3 className="clinical-card-title">Active Tests</h3>
+                              <div className="test-count">{stats.tests?.length || 0}</div>
+                            </div>
+                            <div className="tests-grid">
+                              {(stats.tests || []).slice(0, 3).map((test) => (
+                                <div key={test._id} className="test-item">
+                                  <div className="test-header">
+                                    <span className="test-name">{test.testName || test.name || 'Lab Test'}</span>
+                                    <span className={`test-status ${test.status}`}>{test.status}</span>
+                                  </div>
+                                  <div className="test-patient">{test.patient?.name || 'Patient'}</div>
+                                  <div className="test-progress">
+                                    <div className="progress-bar">
+                                      <div className="progress-fill" style={{ width: test.status === 'completed' ? '100%' : '60%' }}></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                              {(stats.tests || []).length === 0 && (
+                                <div className="no-tests">
+                                  <span>No active tests</span>
+                                </div>
+                              )}
+                            </div>
+                            <button className="view-all-btn" onClick={() => setActiveTab('tests')}>
+                              Manage Tests
+                            </button>
+                          </div>
+                        </div>
+                      </section>
+
+                      {/* Section 3: All Patients - Horizontal */}
+                      <section className="all-patients-section">
+                        <div className="all-patients-header">
+                          <h2 className="all-patients-title">All Patients</h2>
+                          <button className="view-all-patients-btn">View All</button>
+                        </div>
+                        <div className="all-patients-grid">
+                          {/* Sample patient cards - replace with actual data */}
+                          <div className="patient-card-small">
+                            <div className="patient-avatar-small">JD</div>
+                            <div className="patient-info-small">
+                              <h4 className="patient-name-small">John Doe</h4>
+                              <p className="patient-detail-small">Last visit: 2 days ago</p>
+                            </div>
+                            <div className="patient-status-small">Active</div>
+                          </div>
+                          <div className="patient-card-small">
+                            <div className="patient-avatar-small">SM</div>
+                            <div className="patient-info-small">
+                              <h4 className="patient-name-small">Sarah Miller</h4>
+                              <p className="patient-detail-small">Last visit: 1 week ago</p>
+                            </div>
+                            <div className="patient-status-small">Active</div>
+                          </div>
+                          <div className="patient-card-small">
+                            <div className="patient-avatar-small">RJ</div>
+                            <div className="patient-info-small">
+                              <h4 className="patient-name-small">Robert Johnson</h4>
+                              <p className="patient-detail-small">Last visit: 3 days ago</p>
+                            </div>
+                            <div className="patient-status-small">Active</div>
+                          </div>
+                          <div className="patient-card-small">
+                            <div className="patient-avatar-small">EW</div>
+                            <div className="patient-info-small">
+                              <h4 className="patient-name-small">Emily Wilson</h4>
+                              <p className="patient-detail-small">Last visit: 5 days ago</p>
+                            </div>
+                            <div className="patient-status-small">Active</div>
+                          </div>
+                          <div className="patient-card-small">
+                            <div className="patient-avatar-small">MB</div>
+                            <div className="patient-info-small">
+                              <h4 className="patient-name-small">Michael Brown</h4>
+                              <p className="patient-detail-small">Last visit: 1 week ago</p>
+                            </div>
+                            <div className="patient-status-small">Active</div>
+                          </div>
+                          <div className="patient-card-small">
+                            <div className="patient-avatar-small">LW</div>
+                            <div className="patient-info-small">
+                              <h4 className="patient-name-small">Lisa White</h4>
+                              <p className="patient-detail-small">Last visit: 4 days ago</p>
+                            </div>
+                            <div className="patient-status-small">Active</div>
+                          </div>
+                        </div>
+                      </section>
                     </>
                   )}
                   {user.role === 'admin' && (
@@ -964,39 +1243,46 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
                     )}
                   </>
                 ) : (
-                  <div className="dashboard-stats-grid">
-                    {user.role === 'doctor' && (
-                      <>
-                        <div className="stat-card stat-card-blue" style={{ animationDelay: '0.15s' }}>
-                          <span className="stat-value">{pendingAppointments.length}</span>
-                          <span className="stat-label">Pending</span>
+                  user.role === 'admin' && (
+                    <>
+                      <div className="metric-lg card-animated" style={{ animationDelay: '0.05s' }}>
+                        <div className="metric-lg-head">
+                          <div>
+                            <p className="metric-lg-label">Total Appointments</p>
+                            <h3 className="metric-lg-value">{stats.appointments?.length || 0}</h3>
+                          </div>
+                          {trendPill && (
+                            <div className={`metric-lg-pill metric-lg-pill-${trendPill.variant}`}>
+                              {trendPill.label}
+                            </div>
+                          )}
                         </div>
-                        <div className="stat-card stat-card-green" style={{ animationDelay: '0.2s' }}>
-                          <span className="stat-value">{stats.prescriptions?.length || 0}</span>
-                          <span className="stat-label">Prescriptions</span>
+                        <div className="metric-lg-bars">
+                          {weekdayBars.map((b) => (
+                            <div key={b.day} className="metric-lg-bar-wrap">
+                              <div className="metric-lg-bar-num">{b.count}</div>
+                              <div
+                                className={`metric-lg-bar-fill ${b.isPeak ? 'is-peak' : ''}`}
+                                style={{ height: `${b.height}%`, background: b.shade }}
+                              />
+                              <div className="metric-lg-bar-day">{b.day}</div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="stat-card stat-card-slate" style={{ animationDelay: '0.25s' }}>
-                          <span className="stat-value">{stats.tests?.length || 0}</span>
-                          <span className="stat-label">Tests</span>
+                      </div>
+                      <div className="metric-lg metric-lg-accent card-animated" style={{ animationDelay: '0.1s' }}>
+                        <div className="metric-lg-head">
+                          <div>
+                            <p className="metric-lg-label">Consultation Revenue</p>
+                            <h3 className="metric-lg-value">₹{(stats.totalRevenue || 0).toLocaleString()}</h3>
+                          </div>
                         </div>
-                      </>
-                    )}
-                    {user.role === 'admin' && (
-                      <>
-                        <div className="stat-card stat-card-amber" style={{ animationDelay: '0.15s' }}>
-                          <span className="stat-value">{todayAppointments.length}</span>
-                          <span className="stat-label">Today</span>
-                        </div>
-                        <div className="stat-card stat-card-blue" style={{ animationDelay: '0.2s' }}>
-                          <span className="stat-value">{pendingAppointments.length}</span>
-                          <span className="stat-label">Pending</span>
-                        </div>
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    </>
+                  )
                 )}
 
-                {(user.role === 'patient' || user.role === 'doctor') && (
+                {user.role === 'patient' && (
                   <section className="upcoming-appointments-section dashboard-block">
                     <div className="upcoming-section-head">
                       <h2 className="section-title">Upcoming Appointments</h2>
@@ -1169,6 +1455,10 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
 
           {activeTab === 'payments' && (
             <PaymentList userRole={user.role} />
+          )}
+
+          {activeTab === 'medivault' && user.role === 'patient' && (
+            <MediVault />
           )}
 
           {activeTab === 'ai-helper' && user.role === 'patient' && (

@@ -41,9 +41,13 @@ const Emergency = () => {
   return (
     <div className="emergency-page">
       <div className="emergency-header">
-        <div>
+        <div className="hero-bg-pattern" aria-hidden="true" />
+        <div className="emergency-header-content">
+          <p className="emergency-hero-eyebrow">urgent care</p>
           <AnimatedHeading text="Emergency" />
-          <p>If you have a medical emergency, contact local emergency services immediately.</p>
+          <p className="emergency-hero-subtitle">
+            If you have a medical emergency, contact local emergency services immediately.
+          </p>
         </div>
       </div>
 

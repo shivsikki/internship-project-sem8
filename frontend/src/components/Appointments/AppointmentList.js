@@ -100,7 +100,7 @@ const AppointmentList = ({ userRole }) => {
   return (
     <div className="appointments-list-container">
       <header className="appointments-list-hero">
-        <div className="appointments-hero-bg" aria-hidden="true" />
+        <div className="hero-bg-pattern" aria-hidden="true" />
         <div className="appointments-hero-content">
           <p className="appointments-hero-eyebrow">Appointments</p>
           <AnimatedHeading text={pageTitle} />

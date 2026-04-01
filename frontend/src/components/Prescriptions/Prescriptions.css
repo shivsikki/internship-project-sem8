@@ -278,6 +278,36 @@
   padding: 0;
 }
 
+/* Prescriptions list hero (matches the glass strip look) */
+.prescriptions-list-hero {
+  position: relative;
+  margin-bottom: 36px;
+  padding: 24px 0 28px;
+  overflow: hidden;
+}
+
+.prescriptions-hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.prescriptions-hero-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 10px 0;
+}
+
+.prescriptions-hero-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 420px;
+}
+
 .prescriptions-info-card {
   background: var(--color-surface);
   border-radius: 12px;

@@ -93,7 +93,14 @@ const TestList = ({ patientId, userRole }) => {
 
   return (
     <div className="tests-list-container">
-      <AnimatedHeading text="Tests & Medical Records" />
+      <header className="tests-hero">
+        <div className="hero-bg-pattern" aria-hidden="true" />
+        <div className="tests-hero-content">
+          <p className="tests-hero-eyebrow">Medical records</p>
+          <AnimatedHeading text="Tests & Medical Records" />
+          <p className="tests-hero-subtitle">Your test results and health readings in one place.</p>
+        </div>
+      </header>
 
       {tests.length === 0 ? (
         <div className="empty-state-center">

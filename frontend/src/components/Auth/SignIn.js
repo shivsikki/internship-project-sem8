@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Auth.css';
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromSignUp = Boolean(location.state?.fromSignUp);
+  const [playSwap, setPlaySwap] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -12,28 +15,16 @@ const SignIn = () => {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [enter, setEnter] = useState(false);
-  const [exiting, setExiting] = useState(false);
-  const [showSuccessVideo, setShowSuccessVideo] = useState(false);
-  const videoRef = useRef(null);
-  const hasNavigatedRef = useRef(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [keepSignedIn, setKeepSignedIn] = useState(false);
 
-  useEffect(() => {
-    setEnter(true);
-  }, []);
-
-  useEffect(() => {
-    if (!showSuccessVideo) return;
-
-    // Fallback in case `onEnded` doesn't fire (some browsers/edge cases).
-    const t = setTimeout(() => {
-      if (hasNavigatedRef.current) return;
-      hasNavigatedRef.current = true;
-      navigate('/dashboard');
-    }, 12000);
-
-    return () => clearTimeout(t);
-  }, [showSuccessVideo, navigate]);
+  const ssoOptions = useMemo(
+    () => ([
+      { id: 'google', label: 'Google' },
+      { id: 'biometric', label: 'Biometrics' }
+    ]),
+    []
+  );
 
   const handleChange = (e) => {
     setFormData({
@@ -54,12 +45,7 @@ const SignIn = () => {
       if (response.data.success) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-
-        setExiting(true);
-
-        setTimeout(() => {
-          setShowSuccessVideo(true);
-        }, 800);
+        navigate('/dashboard');
       } else {
         setError('Login failed. Please check your credentials.');
       }
@@ -70,83 +56,142 @@ const SignIn = () => {
     }
   };
 
+  useEffect(() => {
+    if (!fromSignUp) return;
+    const rafId = requestAnimationFrame(() => setPlaySwap(true));
+    return () => cancelAnimationFrame(rafId);
+  }, [fromSignUp]);
+
   return (
-    <div className="auth-page">
-      {!showSuccessVideo && <div className="auth-wave" />}
-      <div className="auth-container">
-        {!showSuccessVideo && (
-          <div
-            className={`auth-card ${enter ? 'auth-card-enter' : ''} ${exiting ? 'auth-card-exit' : ''
-              }`}
-          >
-            <div className="auth-header">
-              <h1>Welcome Back</h1>
-              <p>Sign in to your account</p>
+    <div className={`auth-page auth-shell auth-shell-signin${fromSignUp ? ' auth-shell-swap-prepare' : ''}${playSwap ? ' auth-shell-swap-active' : ''}`}>
+      <section className="auth-visual-panel">
+        <div className="auth-visual-image" />
+        <div className="auth-visual-card">
+          <h2>
+            A sanctuary for <span className="auth-accent-script">clinical</span>{' '}
+            <span className="auth-accent-strong">excellence.</span>
+          </h2>
+          <p className="auth-visual-lede">
+            Enter a space designed for clarity, serenity, and precision in healthcare management.
+            <br/>
+            Manage your clinical operations with ease.
+            <br/>
+            Track your patients, appointments, and more.
+            <br/>
+            And much more!
+          </p>
+          <div className="auth-visual-crew" aria-hidden="true">
+            <div className="auth-crew-avatars">
+              <span className="auth-crew-avatar auth-crew-avatar-1" />
+              <span className="auth-crew-avatar auth-crew-avatar-2" />
+              <span className="auth-crew-avatar auth-crew-avatar-more">+12</span>
+            </div>
+            <div className="auth-crew-copy">
+              <strong>Joined by experts</strong>
+              <span>Clinical staff</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="auth-form-panel">
+        <div className="auth-form-wrap">
+          <p className="auth-panel-brand">
+            <span className="auth-panel-brand-mark" aria-hidden="true">✦</span>
+            <span>Hippocrates Lab</span>
+          </p>
+          <div className="auth-header">
+            <h1>Welcome Back</h1>
+            <p>Please enter your credentials to continue.</p>
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-group">
+              <label>Email Address</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                placeholder="Enter your email"
+              />
             </div>
 
-            {error && <div className="error-message">{error}</div>}
-
-            <form onSubmit={handleSubmit} className="auth-form">
-              <div className="form-group">
-                <label>Email</label>
+            <div className="form-group auth-password-group">
+              <label>Password</label>
+              <div className="auth-password-wrap">
                 <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  placeholder="Enter your email"
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Password</label>
-                <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   required
                   placeholder="Enter your password"
                 />
+                <button
+                  type="button"
+                  className="auth-eye-btn"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  )}
+                </button>
               </div>
+            </div>
 
-              <button type="submit" className="auth-button" disabled={loading}>
-                {loading ? 'Signing In...' : 'Sign In'}
+            <div className="auth-actions-row">
+              <label className="auth-check">
+                <input
+                  type="checkbox"
+                  checked={keepSignedIn}
+                  onChange={(e) => setKeepSignedIn(e.target.checked)}
+                />
+                <span>Keep me signed in</span>
+              </label>
+              <button type="button" className="auth-link-btn" onClick={() => {}}>
+                Forgot password?
               </button>
-            </form>
-
-            <div className="auth-footer">
-              <p>Don't have an account? <Link to="/signup">Sign Up</Link></p>
             </div>
 
-            <div className="role-info">
-              <p>Sign in as: <strong>Doctor</strong> | <strong>Admin</strong> | <strong>Patient</strong></p>
-            </div>
+            <button type="submit" className="auth-button" disabled={loading}>
+              {loading ? 'Signing In...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="auth-divider">
+            <span>or continue with</span>
           </div>
-        )}
 
-        {showSuccessVideo && (
-          <div className="auth-success auth-video-overlay">
-            <div className="auth-video-wrap">
-              <video
-                ref={videoRef}
-                className="auth-success-video"
-                src="/videos/animation.mp4"
-                preload="auto"
-                autoPlay
-                muted
-                playsInline
-                onEnded={() => {
-                  if (hasNavigatedRef.current) return;
-                  hasNavigatedRef.current = true;
-                  navigate('/dashboard');
-                }}
-              />
-            </div>
+          <div className="auth-sso-grid">
+            {ssoOptions.map((opt) => (
+              <button key={opt.id} type="button" className="auth-sso-btn">
+                {opt.label}
+              </button>
+            ))}
           </div>
-        )}
-      </div>
+
+          <div className="auth-footer">
+            <p>Don't have an account? <Link to="/signup" state={{ fromSignIn: true }}>Sign Up</Link></p>
+          </div>
+
+          <div className="auth-footer-note">
+            <p>New to the system? <button type="button" className="auth-link-btn">Request access</button></p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

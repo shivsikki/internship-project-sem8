@@ -95,9 +95,11 @@ const AIHelper = () => {
   return (
     <div className="ai-helper-page">
       <div className="ai-helper-header">
-        <div>
+        <div className="hero-bg-pattern" aria-hidden="true" />
+        <div className="ai-helper-header-content">
+          <p className="ai-helper-hero-eyebrow">medicine, tests, and health</p>
           <AnimatedHeading text="AI Helper" />
-          <p>
+          <p className="ai-helper-hero-subtitle">
             Ask general questions about medicines, tests, or health. Answers are for information only and{' '}
             <strong>do not replace your doctor&apos;s advice</strong>.
           </p>

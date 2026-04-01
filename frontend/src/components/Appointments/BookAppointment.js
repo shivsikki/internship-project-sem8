@@ -134,7 +134,7 @@ const BookAppointment = () => {
     <div className="book-appointment-page">
       {/* Hero */}
       <header className="book-appointment-hero">
-        <div className="book-hero-bg" aria-hidden="true" />
+        <div className="hero-bg-pattern" aria-hidden="true" />
         <div className="book-hero-content">
           <p className="book-hero-eyebrow">Appointments</p>
           <AnimatedHeading text="Book an appointment" />

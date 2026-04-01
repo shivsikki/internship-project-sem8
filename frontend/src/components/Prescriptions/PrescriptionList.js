@@ -52,7 +52,7 @@ const PrescriptionList = ({ patientId, userRole }) => {
   return (
     <div className="prescriptions-list-container">
       <header className="prescriptions-list-hero">
-        <div className="prescriptions-hero-bg" aria-hidden="true" />
+        <div className="hero-bg-pattern" aria-hidden="true" />
         <div className="prescriptions-hero-content">
           <p className="prescriptions-hero-eyebrow">Health records</p>
           <AnimatedHeading text="Prescriptions" />

@@ -3,19 +3,44 @@
 }
 
 .payments-header {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 0 24px;
+  margin-bottom: 28px;
+}
+
+.payments-header-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 28px;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 20px;
 }
 
-.payments-header h2 {
-  font-family: var(--font-heading);
-  color: var(--color-text);
-  font-size: 1.35rem;
+.payments-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.payments-hero-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
   margin: 0;
+}
+
+.payments-hero-subtitle {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 420px;
 }
 
 .revenue-card {

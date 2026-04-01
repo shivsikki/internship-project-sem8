@@ -6,22 +6,36 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  padding: 18px 0 24px;
   margin-bottom: 24px;
 }
 
-.ai-helper-header h2 {
-  font-family: var(--font-heading);
-  font-size: 1.6rem;
-  font-weight: 600;
-  margin: 0 0 6px 0;
-  color: var(--color-text);
+.ai-helper-header-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.ai-helper-header p {
+.ai-helper-hero-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ai-helper-hero-subtitle {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 0.95rem;
-  max-width: 640px;
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 520px;
 }
 
 .ai-helper-layout {

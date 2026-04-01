@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Auth.css';
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromSignIn = Boolean(location.state?.fromSignIn);
+  const [playSwap, setPlaySwap] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,11 +26,6 @@ const SignUp = () => {
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [enter, setEnter] = useState(false);
-
-  useEffect(() => {
-    setEnter(true);
-  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -72,11 +70,50 @@ const SignUp = () => {
     }
   };
 
+  useEffect(() => {
+    if (!fromSignIn) return;
+    const rafId = requestAnimationFrame(() => setPlaySwap(true));
+    return () => cancelAnimationFrame(rafId);
+  }, [fromSignIn]);
+
   return (
-    <div className="auth-page">
-      <div className="auth-wave" />
-      <div className="auth-container">
-        <div className={`auth-card auth-card-wide ${enter ? 'auth-card-enter' : ''}`}>
+    <div className={`auth-page auth-shell auth-shell-signup${fromSignIn ? ' auth-shell-swap-prepare' : ''}${playSwap ? ' auth-shell-swap-active' : ''}`}>
+      <section className="auth-visual-panel">
+        <div className="auth-visual-image" />
+        <div className="auth-visual-card">
+          <h2>
+            A sanctuary for <span className="auth-accent-script">clinical</span>{' '}
+            <span className="auth-accent-strong">excellence.</span>
+          </h2>
+          <p className="auth-visual-lede">
+          Enter a space designed for clarity, serenity, and precision in healthcare management.
+            <br/>
+            Manage your clinical operations with ease.
+            <br/>
+            Track your patients, appointments, and more.
+            <br/>
+            And much more!
+          </p>
+          <div className="auth-visual-crew" aria-hidden="true">
+            <div className="auth-crew-avatars">
+              <span className="auth-crew-avatar auth-crew-avatar-1" />
+              <span className="auth-crew-avatar auth-crew-avatar-2" />
+              <span className="auth-crew-avatar auth-crew-avatar-more">+12</span>
+            </div>
+            <div className="auth-crew-copy">
+              <strong>Joined by experts</strong>
+              <span>Clinical staff</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="auth-form-panel">
+        <div className="auth-form-wrap auth-form-wrap-wide">
+          <p className="auth-panel-brand">
+            <span className="auth-panel-brand-mark" aria-hidden="true">✦</span>
+            <span>Hippocrates Lab</span>
+          </p>
           <div className="auth-header">
             <h1>Create Account</h1>
             <p>Join our Hospital Management System</p>
@@ -247,10 +284,10 @@ const SignUp = () => {
           </form>
 
           <div className="auth-footer">
-            <p>Already have an account? <Link to="/signin">Sign In</Link></p>
+            <p>Already have an account? <Link to="/signin" state={{ fromSignUp: true }}>Sign In</Link></p>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 };

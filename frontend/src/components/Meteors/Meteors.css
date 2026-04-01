@@ -3,13 +3,13 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  z-index: 1; /* Above background, below app-content */
+  z-index: 1; /* Behind cards/content */
 }
 
 .hospital-cross {
   position: absolute;
   top: -10vh; /* Start slightly above viewport */
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(56, 88, 76, 0.32);
   animation: fall-down linear infinite;
   display: flex;
   align-items: center;

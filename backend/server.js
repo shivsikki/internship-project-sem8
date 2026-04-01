@@ -31,6 +31,7 @@ app.use('/api/prescriptions', require('./routes/prescriptions'));
 app.use('/api/tests', require('./routes/tests'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/medivault', require('./routes/medivault'));
 
 // Health check
 app.get('/api/health', (req, res) => {

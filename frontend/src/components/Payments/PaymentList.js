@@ -67,13 +67,20 @@ const PaymentList = ({ userRole }) => {
   return (
     <div className="payments-list-container">
       <div className="payments-header">
-        <AnimatedHeading text="Payments" />
-        {userRole === 'admin' && (
-          <div className="revenue-card">
-            <strong>Total Revenue:</strong>
-            <span className="revenue-amount">${totalRevenue.toFixed(2)}</span>
+        <div className="hero-bg-pattern" aria-hidden="true" />
+        <div className="payments-header-content">
+          <div className="payments-header-text">
+            <p className="payments-hero-eyebrow">Billing & Receipts</p>
+            <AnimatedHeading text="Payments" />
+            <p className="payments-hero-subtitle">Track your payments and payment history in one place.</p>
           </div>
-        )}
+          {userRole === 'admin' && (
+            <div className="revenue-card">
+              <strong>Total Revenue:</strong>
+              <span className="revenue-amount">${totalRevenue.toFixed(2)}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {payments.length === 0 ? (
