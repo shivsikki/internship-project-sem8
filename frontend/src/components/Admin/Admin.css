@@ -1,0 +1,137 @@
+.admin-feature-container {
+  padding: 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  margin-top: 20px;
+}
+
+.admin-grid-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+  margin-top: 30px;
+}
+
+.chart-card {
+  background: #fdfdfd;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 20px;
+  transition: transform 0.2s;
+}
+
+.chart-card:hover {
+  transform: translateY(-5px);
+}
+
+.chart-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3436;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.audit-table-wrapper {
+  overflow-x: auto;
+  margin-top: 20px;
+}
+
+.audit-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.audit-table th {
+  text-align: left;
+  padding: 12px;
+  background: #f8f9fa;
+  border-bottom: 2px solid #eee;
+  color: #636e72;
+  font-weight: 600;
+}
+
+.audit-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  color: #2d3436;
+  font-size: 0.9rem;
+}
+
+.log-action-badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.action-create { background: #e3f2fd; color: #1976d2; }
+.action-update { background: #fff3e0; color: #f57c00; }
+.action-delete { background: #ffebee; color: #d32f2f; }
+.action-suspend { background: #fce4ec; color: #c2185b; }
+
+.broadcast-form {
+  max-width: 600px;
+  margin-bottom: 30px;
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group input, 
+.form-group textarea, 
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.announcement-banner {
+  background: linear-gradient(135deg, #2d3436 0%, #000 100%);
+  color: #fff;
+  padding: 12px 24px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.btn-suspend {
+  background: #ff7675;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-unsuspend {
+  background: #55efc4;
+  color: #2d3436;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
