@@ -20,6 +20,107 @@
   animation: blockReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Section header with toggle */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filter-toggle {
+  display: flex;
+  gap: 10px;
+}
+
+.toggle-btn {
+  padding: 8px 16px;
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  background: white;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.toggle-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* Selected doctor info */
+.selected-doctor-info {
+  margin-top: 10px;
+}
+
+.doctor-card-mini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  background: white;
+  margin-bottom: 10px;
+}
+
+.doctor-avatar-mini {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.doctor-info-mini strong {
+  display: block;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.doctor-info-mini p {
+  margin: 2px 0;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.clear-doctor-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--color-error);
+  border-radius: 4px;
+  background: white;
+  color: var(--color-error);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-doctor-btn:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+.no-doctor-selected {
+  padding: 20px;
+  text-align: center;
+  background: #f8f9fa;
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text-muted);
+}
+
 /* Book appointment hero */
 .book-appointment-hero {
   position: relative;

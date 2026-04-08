@@ -18,6 +18,9 @@ const SignUp = () => {
     // Doctor fields
     specialization: '',
     licenseNumber: '',
+    country: 'IN',
+    city: '',
+    clinicAddress: '',
     // Patient fields
     age: '',
     gender: '',
@@ -242,6 +245,123 @@ const SignUp = () => {
                             value={formData.licenseNumber}
                             onChange={handleChange}
                             placeholder="Enter license number"
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Country</label>
+                          <select
+                            name="country"
+                            value={formData.country}
+                            onChange={handleChange}
+                            required
+                            className="role-select"
+                          >
+                            <option value="IN">India</option>
+                            <option value="US">United States</option>
+                            <option value="UK">United Kingdom</option>
+                            <option value="CA">Canada</option>
+                            <option value="AU">Australia</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label>City</label>
+                          <select
+                            name="city"
+                            value={formData.city}
+                            onChange={handleChange}
+                            required
+                            className="role-select"
+                          >
+                            <option value="">Select your city</option>
+                            {formData.country === 'IN' && (
+                              <>
+                                <option value="Nadiad">Nadiad</option>
+                                <option value="Ahmedabad">Ahmedabad</option>
+                                <option value="Vadodara">Vadodara</option>
+                                <option value="Surat">Surat</option>
+                                <option value="Rajkot">Rajkot</option>
+                                <option value="Gandhinagar">Gandhinagar</option>
+                                <option value="Bhavnagar">Bhavnagar</option>
+                                <option value="Jamnagar">Jamnagar</option>
+                                <option value="Junagadh">Junagadh</option>
+                                <option value="Gandhidham">Gandhidham</option>
+                                <option value="Anand">Anand</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Bangalore">Bangalore</option>
+                                <option value="Chennai">Chennai</option>
+                                <option value="Kolkata">Kolkata</option>
+                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Pune">Pune</option>
+                              </>
+                            )}
+                            {formData.country === 'US' && (
+                              <>
+                                <option value="New York">New York</option>
+                                <option value="Los Angeles">Los Angeles</option>
+                                <option value="Chicago">Chicago</option>
+                                <option value="Houston">Houston</option>
+                                <option value="Phoenix">Phoenix</option>
+                                <option value="Philadelphia">Philadelphia</option>
+                                <option value="San Antonio">San Antonio</option>
+                                <option value="San Diego">San Diego</option>
+                                <option value="Dallas">Dallas</option>
+                                <option value="San Jose">San Jose</option>
+                              </>
+                            )}
+                            {formData.country === 'UK' && (
+                              <>
+                                <option value="London">London</option>
+                                <option value="Manchester">Manchester</option>
+                                <option value="Birmingham">Birmingham</option>
+                                <option value="Leeds">Leeds</option>
+                                <option value="Glasgow">Glasgow</option>
+                                <option value="Sheffield">Sheffield</option>
+                                <option value="Bradford">Bradford</option>
+                                <option value="Liverpool">Liverpool</option>
+                                <option value="Edinburgh">Edinburgh</option>
+                                <option value="Bristol">Bristol</option>
+                              </>
+                            )}
+                            {formData.country === 'CA' && (
+                              <>
+                                <option value="Toronto">Toronto</option>
+                                <option value="Montreal">Montreal</option>
+                                <option value="Vancouver">Vancouver</option>
+                                <option value="Calgary">Calgary</option>
+                                <option value="Edmonton">Edmonton</option>
+                                <option value="Ottawa">Ottawa</option>
+                                <option value="Winnipeg">Winnipeg</option>
+                                <option value="Quebec City">Quebec City</option>
+                                <option value="Hamilton">Hamilton</option>
+                                <option value="Halifax">Halifax</option>
+                              </>
+                            )}
+                            {formData.country === 'AU' && (
+                              <>
+                                <option value="Sydney">Sydney</option>
+                                <option value="Melbourne">Melbourne</option>
+                                <option value="Brisbane">Brisbane</option>
+                                <option value="Perth">Perth</option>
+                                <option value="Adelaide">Adelaide</option>
+                                <option value="Gold Coast">Gold Coast</option>
+                                <option value="Canberra">Canberra</option>
+                                <option value="Newcastle">Newcastle</option>
+                                <option value="Wollongong">Wollongong</option>
+                                <option value="Logan City">Logan City</option>
+                              </>
+                            )}
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label>Clinic Address</label>
+                          <textarea
+                            name="clinicAddress"
+                            value={formData.clinicAddress}
+                            onChange={handleChange}
+                            placeholder="Enter your clinic address"
+                            rows="3"
+                            required
                           />
                         </div>
                       </>
