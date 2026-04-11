@@ -1,0 +1,400 @@
+/* AI Helper - Modern Consultation Input Design */
+.ai-helper-page {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Header Styles */
+.ai-helper-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  padding: 18px 0 24px;
+  margin-bottom: 32px;
+}
+
+.hero-bg-pattern {
+  position: absolute;
+  inset: -20px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(74, 93, 74, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 50%, rgba(74, 85, 104, 0.06), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 80%, rgba(184, 134, 11, 0.05), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ai-helper-header-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-helper-hero-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.ai-helper-hero-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 520px;
+}
+
+/* Main Container */
+.consultation-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Consultation Input Card */
+.consultation-input-card {
+  background: #f2f6f0;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.1);
+  border: 3px solid rgba(244, 234, 212, 0.96);
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+}
+
+.consultation-input-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+.consultation-title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e2d;
+  margin: 0 0 24px 0;
+  letter-spacing: -0.02em;
+}
+
+/* Form Styles */
+.consultation-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.textarea-wrapper {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+}
+
+.consultation-textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 20px 60px 20px 24px;
+  border: 2px solid #e5e7eb;
+  border-radius: 20px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #374151;
+  background: #fafbfc;
+  resize: vertical;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.consultation-textarea::placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.consultation-textarea:focus {
+  border-color: #3f5038;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(63, 80, 56, 0.1);
+}
+
+/* Microphone Button */
+.microphone-btn {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.microphone-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.microphone-btn.recording {
+  background: #ef4444;
+  color: white;
+  animation: pulse 1.5s infinite;
+}
+
+.microphone-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    box-shadow: 0 2px 16px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Transcript Feedback */
+.transcript-feedback {
+  padding: 12px 16px;
+  background: rgba(63, 80, 56, 0.05);
+  border-left: 3px solid #3f5038;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-style: italic;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Analyze Button */
+.analyze-btn {
+  background: #3f5038;
+  color: #ffffff;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(63, 80, 56, 0.25);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  align-self: flex-end;
+  position: relative;
+  overflow: hidden;
+}
+
+.analyze-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.analyze-btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.analyze-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(63, 80, 56, 0.35);
+  background: #2d3730;
+}
+
+.analyze-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 4px 12px rgba(63, 80, 56, 0.15);
+}
+
+/* Error Message */
+.consultation-error {
+  margin-top: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  font-size: 0.9rem;
+  border-left: 4px solid #dc2626;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Output Card */
+.consultation-output-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.1);
+  border: 3px solid rgba(244, 234, 212, 0.96);
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.output-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2c3e2d;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.02em;
+}
+
+.consultation-answer {
+  font-size: 1rem;
+  color: #374151;
+  line-height: 1.7;
+}
+
+.consultation-answer p {
+  margin: 0 0 16px 0;
+}
+
+.consultation-answer p:last-child {
+  margin-bottom: 0;
+}
+
+.consultation-answer strong {
+  color: #2c3e2d;
+  font-weight: 700;
+}
+
+.consultation-answer ul {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.consultation-answer li {
+  margin: 8px 0;
+  color: #4b5563;
+}
+
+.ai-helper-list {
+  margin: 4px 0 8px 18px;
+  padding: 0;
+}
+
+.ai-helper-list li {
+  margin: 2px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .consultation-container {
+    padding: 0 16px;
+  }
+  
+  .consultation-input-card,
+  .consultation-output-card {
+    padding: 24px;
+    border-radius: 20px;
+  }
+  
+  .consultation-title {
+    font-size: 1.3rem;
+  }
+  
+  .consultation-textarea {
+    padding: 16px 50px 16px 20px;
+    min-height: 120px;
+    font-size: 0.95rem;
+  }
+  
+  .microphone-btn {
+    right: 12px;
+    bottom: 12px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .analyze-btn {
+    width: 100%;
+    padding: 14px 24px;
+  }
+  
+  .ai-helper-hero-subtitle {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .consultation-input-card,
+  .consultation-output-card {
+    padding: 20px;
+  }
+  
+  .consultation-title {
+    font-size: 1.2rem;
+  }
+  
+  .consultation-textarea {
+    padding: 14px 45px 14px 16px;
+    font-size: 0.9rem;
+  }
+  
+  .microphone-btn {
+    width: 36px;
+    height: 36px;
+    right: 10px;
+    bottom: 10px;
+  }
+  
+  .microphone-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles for better accessibility */
+.consultation-textarea:focus,
+.analyze-btn:focus,
+.microphone-btn:focus {
+  outline: 2px solid #3f5038;
+  outline-offset: 2px;
+}
+
