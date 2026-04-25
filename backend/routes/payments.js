@@ -35,10 +35,11 @@ router.post('/create-order', verifyToken, async (req, res) => {
     const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!razorpayKeyId || !razorpayKeySecret) {
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Payment gateway not configured. Please contact administrator.' 
+      return res.status(500).json({
+        success: false,
+        message: 'Payment gateway not configured. Please contact administrator.'
       });
+
     }
 
     // Create order using Razorpay API
@@ -70,10 +71,10 @@ router.post('/create-order', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Create order error:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Failed to create payment order',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -81,9 +82,9 @@ router.post('/create-order', verifyToken, async (req, res) => {
 // Verify Razorpay Payment
 router.post('/verify', verifyToken, async (req, res) => {
   try {
-    const { 
-      razorpay_order_id, 
-      razorpay_payment_id, 
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
       razorpay_signature,
       amount,
       appointmentId,
@@ -95,9 +96,9 @@ router.post('/verify', verifyToken, async (req, res) => {
     const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!razorpayKeySecret) {
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Payment gateway not configured' 
+      return res.status(500).json({
+        success: false,
+        message: 'Payment gateway not configured'
       });
     }
 
@@ -108,9 +109,9 @@ router.post('/verify', verifyToken, async (req, res) => {
       .digest('hex');
 
     if (generated_signature !== razorpay_signature) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Payment verification failed - Invalid signature' 
+      return res.status(400).json({
+        success: false,
+        message: 'Payment verification failed - Invalid signature'
       });
     }
 
@@ -147,10 +148,10 @@ router.post('/verify', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Verify payment error:', error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: 'Payment verification failed',
-      error: error.message 
+      error: error.message
     });
   }
 });

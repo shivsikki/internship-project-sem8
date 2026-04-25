@@ -43,7 +43,7 @@ const Tests = ({ userRole, patientId }) => {
         <div className="tests-hero-bg" aria-hidden="true" />
         <div className="tests-hero-content">
           <p className="tests-hero-eyebrow">Diagnostic Management</p>
-          <AnimatedHeading text="Clinical Pathways" />
+          <AnimatedHeading text="Clinical Test Pathways" />
           <p className="tests-hero-subtitle">Choose the appropriate diagnostic workflow for your patient. Plan future tests or record immediate results.</p>
         </div>
       </header>

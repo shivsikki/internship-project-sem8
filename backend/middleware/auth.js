@@ -13,8 +13,11 @@ const auth = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_super_secret_jwt_key_change_this_in_production');
     
-    // We'll set both req.user.id and req.userId to maintain compatibility with different routes
-    req.user = { id: decoded.userId };
+    // We'll set both req.user and req.userId to maintain compatibility
+    req.user = { 
+      id: decoded.userId,
+      role: decoded.role
+    };
     req.userId = decoded.userId;
     
     next();

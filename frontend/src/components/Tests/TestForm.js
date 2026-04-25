@@ -24,7 +24,7 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
     testResults: '',
     notes: '',
     images: [],
-    labResults: Array(5).fill({ parameter: '', value: '', unit: '', referenceRange: '' }),
+    labResults: Array.from({ length: 5 }, () => ({ parameter: '', value: '', unit: '', referenceRange: '' })),
     status: mode === 'request' ? 'pending' : 'completed'
   });
   const [imageUploading, setImageUploading] = useState(false);
@@ -54,7 +54,7 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
 
   const fetchPatients = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.get('/api/appointments/doctor', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -82,7 +82,7 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
     if (!files.length) return;
 
     setImageUploading(true);
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
 
     try {
       const uploadedImages = [];
@@ -160,7 +160,7 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.post('/api/tests/create', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -207,7 +207,7 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
           <p className="tests-hero-eyebrow">{mode === 'request' ? 'Clinical Orders' : 'Medical Records'}</p>
           <AnimatedHeading text={mode === 'request' ? 'Request Patient Test' : 'Create Test Record'} />
           <p className="tests-hero-subtitle">
-            {mode === 'request' 
+            {mode === 'request'
               ? 'Instruct the patient to perform a diagnostic test at a nearby facility.'
               : 'Directly record clinical findings and diagnostic results into the patient profile.'}
           </p>
@@ -289,7 +289,7 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
           </div>
 
           <div className="v2-section-group">
-            <span className="v2-label">{mode === 'request' ? 'Deadline Date' : 'Test Date'}</span>
+            <span className="v2-label">{mode === 'request' ? 'Test Deadline Date' : 'Test Date'}</span>
             <div className="date-input-wrapper">
               <input
                 type="date"
@@ -298,9 +298,6 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
                 required
                 className="v2-input-pill"
               />
-              <div className="calendar-icon-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              </div>
             </div>
           </div>
 
@@ -315,6 +312,21 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
                 <option value="pending">Pending</option>
                 <option value="completed">Completed</option>
               </select>
+            </div>
+          )}
+
+          {mode == 'request' && (
+            <div className="v2-section-group">
+              <span className="v2-label">Upload Deadline</span>
+              <div className="date-input-wrapper">
+                <input
+                  type="date"
+                  value={formData.uploadDeadline}
+                  onChange={(e) => setFormData({ ...formData, uploadDeadline: e.target.value })}
+                  required
+                  className="v2-input-pill"
+                />
+              </div>
             </div>
           )}
         </div>
@@ -358,13 +370,26 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
                         onChange={(e) => handleLabResultChange(idx, 'value', e.target.value)}
                         className="v2-input-pill-mini"
                       />
-                      <input
-                        type="text"
-                        placeholder="mg/dL"
+                      <select
                         value={result.unit}
                         onChange={(e) => handleLabResultChange(idx, 'unit', e.target.value)}
                         className="v2-input-pill-mini"
-                      />
+                      >
+                        <option value="">Unit</option>
+                        <option value="mg/dL">mg/dL</option>
+                        <option value="g/dL">g/dL</option>
+                        <option value="mmol/L">mmol/L</option>
+                        <option value="µmol/L">µmol/L</option>
+                        <option value="cells/mcL">cells/mcL</option>
+                        <option value="IU/L">IU/L</option>
+                        <option value="U/L">U/L</option>
+                        <option value="%">%</option>
+                        <option value="pg">pg</option>
+                        <option value="fL">fL</option>
+                        <option value="mEq/L">mEq/L</option>
+                        <option value="ng/mL">ng/mL</option>
+                        <option value="unitless">unitless</option>
+                      </select>
                       <input
                         type="text"
                         placeholder="70-100"
@@ -372,7 +397,9 @@ const TestForm = ({ appointment, onSuccess, mode = 'upload' }) => {
                         onChange={(e) => handleLabResultChange(idx, 'referenceRange', e.target.value)}
                         className="v2-input-pill-mini"
                       />
-                      <button type="button" onClick={() => removeLabResult(idx)} className="remove-param-btn">×</button>
+                      {formData.labResults.length > 1 && (
+                        <button type="button" onClick={() => removeLabResult(idx)} className="remove-param-btn">×</button>
+                      )}
                     </div>
                   ))}
                 </div>

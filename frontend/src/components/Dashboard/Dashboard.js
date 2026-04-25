@@ -17,6 +17,7 @@ import Enquiries from '../Enquiries/Enquiries';
 import NotificationBell from '../Notifications/NotificationBell';
 import AdminDashboard from '../AdminDashboard/AdminDashboard';
 import DoctorVerification from '../DoctorVerification/DoctorVerification';
+import UserManagement from '../UserManagement/UserManagement';
 import './Dashboard.css';
 
 const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
@@ -33,7 +34,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
   const [mediVaultSearchQuery, setMediVaultSearchQuery] = useState('');
   const [reminders, setReminders] = useState(() => {
     try {
-      const raw = localStorage.getItem('patient_reminders');
+      const raw = sessionStorage.getItem('patient_reminders');
       if (raw) return JSON.parse(raw);
     } catch {
       // ignore
@@ -67,7 +68,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       if (!token) {
         navigate('/signin');
         return;
@@ -83,8 +84,8 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
         }
       } catch (error) {
         console.error('Error fetching user:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
         navigate('/signin');
       } finally {
         setLoading(false);
@@ -96,7 +97,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('patient_reminders', JSON.stringify(reminders));
+      sessionStorage.setItem('patient_reminders', JSON.stringify(reminders));
     } catch {
     }
   }, [reminders]);
@@ -104,7 +105,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
   useEffect(() => {
     if (!user || activeTab !== 'dashboard') return;
 
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const fetchStats = async () => {
       try {
         const [appointmentsRes, paymentsRes] = await Promise.all([
@@ -149,8 +150,8 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
   }, [user, activeTab]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     navigate('/signin');
   };
 
@@ -272,7 +273,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
   const openAiForPrescription = (prescription) => {
     const question = buildPrescriptionPrompt(prescription);
     if (!question) return;
-    localStorage.setItem('ai_helper_prefill', JSON.stringify({ question }));
+    sessionStorage.setItem('ai_helper_prefill', JSON.stringify({ question }));
     setShowPrescriptionAiPicker(false);
     setSelectedPrescriptionId('');
     setActiveTab('ai-helper');
@@ -393,6 +394,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
     navItems.push({ id: 'tests', label: 'Tests' });
     navItems.push({ id: 'payments', label: 'All Payments' });
     navItems.push({ id: 'verification', label: 'Verify Doctors' });
+    navItems.push({ id: 'manage-users', label: 'Manage Users' });
   }
 
   const isSidebarExpanded = !isSidebarCollapsed;
@@ -419,13 +421,23 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
           </svg>
         );
       case 'appointments':
+        return (
+          <svg {...common}>
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        );
       case 'book':
         return (
           <svg {...common}>
-            <rect x="3" y="4" width="18" height="18" rx="3" />
-            <line x1="8" y1="2.5" x2="8" y2="6.5" />
-            <line x1="16" y1="2.5" x2="16" y2="6.5" />
-            <line x1="3" y1="10" x2="21" y2="10" />
+            <path d="M16 2v4" />
+            <path d="M3 10h18" />
+            <path d="M8 2v4" />
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <path d="M12 14v4" />
+            <path d="M10 16h4" />
           </svg>
         );
       case 'prescriptions':
@@ -475,7 +487,11 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
       case 'ai-helper':
         return (
           <svg {...common}>
-            <path d="M21 15a4 4 0 0 1-4 4H8l-5 3 2-5a4 4 0 0 1-1-2.7V7a4 4 0 0 1 4-4h9a4 4 0 0 1 4 4z" />
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+            <path d="M5 3v4" />
+            <path d="M7 5H3" />
+            <path d="M17 17v4" />
+            <path d="M19 19h-4" />
           </svg>
         );
       case 'emergency':
@@ -491,6 +507,15 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
           <svg {...common}>
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             <polyline points="9 12 11 14 15 10" />
+          </svg>
+        );
+      case 'manage-users':
+        return (
+          <svg {...common}>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>
         );
       default:
@@ -586,6 +611,10 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
             <DoctorVerification />
           )}
 
+          {activeTab === 'manage-users' && user?.role === 'admin' && (
+            <UserManagement />
+          )}
+
           {activeTab === 'dashboard' && user?.role !== 'admin' && (
             <>
               <div className="dashboard-home">
@@ -609,7 +638,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
                     {user.role === 'patient' && (
                       <>
                         <div 
-                          className={`metric-lg card-animated ${hoveredCard && hoveredCard !== 'visits' ? 'card-shrunk' : ''} ${hoveredCard === 'visits' ? 'card-expanded' : ''}`}
+                          className={`metric-lg card-animated patient-focus-card ${hoveredCard && hoveredCard !== 'visits' ? 'card-shrunk' : ''} ${hoveredCard === 'visits' ? 'card-expanded' : ''}`}
                           style={{ animationDelay: '0.05s' }}
                           onMouseEnter={() => setHoveredCard('visits')}
                           onMouseLeave={() => setHoveredCard(null)}
@@ -639,7 +668,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
                           </div>
                         </div>
                         <div 
-                          className={`metric-lg health-card card-animated ${hoveredCard && hoveredCard !== 'health' ? 'card-shrunk' : ''} ${hoveredCard === 'health' ? 'card-expanded' : ''}`}
+                          className={`metric-lg health-card card-animated patient-focus-card ${hoveredCard && hoveredCard !== 'health' ? 'card-shrunk' : ''} ${hoveredCard === 'health' ? 'card-expanded' : ''}`}
                           style={{ animationDelay: '0.1s' }}
                           onMouseEnter={() => setHoveredCard('health')}
                           onMouseLeave={() => setHoveredCard(null)}
@@ -1074,7 +1103,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
                     <>
                       <div className="dash-art-grid">
                         <section 
-                          className={`dash-feature dash-prescriptions card-animated ${hoveredCard && hoveredCard !== 'prescriptions' ? 'card-shrunk' : ''} ${hoveredCard === 'prescriptions' ? 'card-expanded' : ''}`}
+                          className={`dash-feature dash-prescriptions card-animated patient-focus-card ${hoveredCard && hoveredCard !== 'prescriptions' ? 'card-shrunk' : ''} ${hoveredCard === 'prescriptions' ? 'card-expanded' : ''}`}
                           style={{ animationDelay: '0.15s' }}
                           onMouseEnter={() => setHoveredCard('prescriptions')}
                           onMouseLeave={() => setHoveredCard(null)}
@@ -1088,7 +1117,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
                           </div>
 
                           <div className="dash-feature-list">
-                            {(stats.prescriptions || []).slice(0, 2).map((p) => (
+                            {(stats.prescriptions || []).slice(0, 1).map((p) => (
                               <div key={p._id} className="dash-feature-item">
                                 <div className="dash-feature-item-main">
                                   <span className="dash-feature-item-title">{p.diagnosis || 'Prescription'}</span>
@@ -1125,7 +1154,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
                         </section>
 
                         <section 
-                          className={`dash-feature dash-tests card-animated ${hoveredCard && hoveredCard !== 'tests' ? 'card-shrunk' : ''} ${hoveredCard === 'tests' ? 'card-expanded' : ''}`}
+                          className={`dash-feature dash-tests card-animated patient-focus-card ${hoveredCard && hoveredCard !== 'tests' ? 'card-shrunk' : ''} ${hoveredCard === 'tests' ? 'card-expanded' : ''}`}
                           style={{ animationDelay: '0.2s' }}
                           onMouseEnter={() => setHoveredCard('tests')}
                           onMouseLeave={() => setHoveredCard(null)}
@@ -1141,7 +1170,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
 
                           <div className="dash-tests-content">
                             <div className="dash-tests-mini">
-                              {(stats.tests || []).slice(0, 3).map((t) => (
+                              {(stats.tests || []).slice(0, 1).map((t) => (
                                 <div key={t._id} className="dash-tests-row">
                                   <div className="dash-tests-dot" />
                                   <div className="dash-tests-row-main">
@@ -1382,8 +1411,10 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
                           <span className="doc-action-icon">⚙️</span>
                           <span className="doc-action-text">Clinic Settings</span>
                         </button>
-                        <button className="doc-action-btn">
-                          <span className="doc-action-icon">✉️</span>
+                        <button className="doc-action-btn" onClick={() => setActiveTab('inquiries')}>
+                          <span className="doc-action-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                          </span>
                           <span className="doc-action-text">Patient Inquiries</span>
                           <span className="doc-action-badge">2</span>
                         </button>
@@ -1561,7 +1592,7 @@ const Dashboard = ({ isSidebarCollapsed, setIsSidebarCollapsed }) => {
           )}
 
           {activeTab === 'inquiries' && (
-            <Enquiries userRole={user.role} />
+            <Enquiries userRole={user.role} setActiveTab={setActiveTab} />
           )}
         </div>
       </main>

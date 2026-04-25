@@ -32,7 +32,7 @@ const PrescriptionForm = ({ appointment, onSuccess }) => {
 
   const fetchPatients = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.get('/api/appointments/doctor', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -78,7 +78,7 @@ const PrescriptionForm = ({ appointment, onSuccess }) => {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const { allergies, history, ...rest } = formData;
 
       const noteParts = [];

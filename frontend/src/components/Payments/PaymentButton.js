@@ -32,7 +32,7 @@ const PaymentButton = ({ amount, appointmentId, description, onSuccess }) => {
       }
 
       // Create order on backend
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.post(
         '/api/payments/create-order',
         {
@@ -90,8 +90,8 @@ const PaymentButton = ({ amount, appointmentId, description, onSuccess }) => {
           }
         },
         prefill: {
-          name: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).name : '',
-          email: localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).email : ''
+          name: sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).name : '',
+          email: sessionStorage.getItem('user') ? JSON.parse(sessionStorage.getItem('user')).email : ''
         },
         theme: {
           color: '#4a5568'

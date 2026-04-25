@@ -81,9 +81,21 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  city: {
+    type: String,
+    default: ''
+  },
   address: {
     type: String,
     default: ''
+  },
+  isSuspended: {
+    type: Boolean,
+    default: false
+  },
+  isOnWatchlist: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,

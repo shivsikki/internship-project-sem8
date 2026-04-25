@@ -3,6 +3,8 @@ const router = express.Router();
 const Enquiry = require('../models/Enquiry');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Test = require('../models/Test');
+const Appointment = require('../models/Appointment');
 const auth = require('../middleware/auth');
 
 // @route   GET api/enquiries
@@ -56,7 +58,8 @@ router.post('/', auth, async (req, res) => {
       type: 'enquiry',
       title: 'New Patient Inquiry',
       message: `${patient.name} has sent a new inquiry: "${subject}"`,
-      relatedId: enquiry._id
+      relatedId: enquiry._id,
+      actionPath: `/enquiries/chat/${patientId}`
     });
     await notification.save();
 
@@ -96,12 +99,70 @@ router.put('/:id/reply', auth, async (req, res) => {
       type: 'enquiry',
       title: 'Physician Response Recieved',
       message: `Dr. ${doctor.name} has replied to your inquiry: "${enquiry.subject}"`,
-      relatedId: enquiry._id
+      relatedId: enquiry._id,
+      actionPath: `/enquiries/chat/${doctorId}`
     });
     await notification.save();
 
     res.json({ success: true, enquiry });
   } catch (err) {
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+// @route   GET api/enquiries/pending-data
+// @desc    Get pending tests and upcoming sessions for the Hub
+// @access  Private
+router.get('/pending-data', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    let pendingTests = [];
+    let upcomingSessions = [];
+
+    // 1. Fetch Pending Tests
+    if (userRole === 'doctor') {
+      pendingTests = await Test.find({ doctor: userId, status: 'pending' })
+        .populate('patient', 'name email profilePhoto')
+        .sort({ testDate: -1 });
+    } else {
+      pendingTests = await Test.find({ patient: userId, status: 'pending' })
+        .populate('doctor', 'name specialization profilePhoto')
+        .sort({ testDate: -1 });
+    }
+
+    // 2. Fetch Upcoming Video Sessions (Appointments with status 'confirmed' or 'pending')
+    // and occurring today or in future.
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const sessionQuery = {
+      status: 'pending',
+      reason: 'Planned Call', // ONLY Planned Calls should be in the Hub
+      appointmentDate: { $gte: today }
+    };
+
+    if (userRole === 'doctor') {
+      sessionQuery.doctor = userId;
+    } else {
+      sessionQuery.patient = userId;
+    }
+
+    upcomingSessions = await Appointment.find(sessionQuery)
+      .populate(userRole === 'doctor' ? 'patient' : 'doctor', 'name specialization profilePhoto')
+      .sort({ appointmentDate: 1, appointmentTime: 1 })
+      .limit(5);
+
+    res.json({ 
+      success: true, 
+      pending: {
+        tests: pendingTests,
+        sessions: upcomingSessions
+      }
+    });
+  } catch (err) {
+    console.error('Pending data fetch error:', err);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });

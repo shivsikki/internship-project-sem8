@@ -90,9 +90,13 @@ router.post('/create', verifyToken, async (req, res) => {
     const notification = new Notification({
       userId: doctorId,
       type: 'appointment',
-      title: 'New Appointment Booking',
-      message: `${patient.name} has scheduled a new appointment in ${city} for ${appointmentTime} on ${appointmentDate}. Reason: ${reason}`,
-      relatedId: appointment._id
+      title: reason === 'Planned Call' ? 'Planned Call Request' : 'New Appointment Booking',
+      message: reason === 'Planned Call' 
+        ? 'You got a planned call request' 
+        : `${patient.name} has scheduled a new appointment in ${city} for ${appointmentTime} on ${appointmentDate}. Reason: ${reason}`,
+      relatedId: appointment._id,
+      actionPath: reason === 'Planned Call' ? null : '/appointments',
+      status: 'pending'
     });
     await notification.save();
 
@@ -111,12 +115,45 @@ router.post('/create', verifyToken, async (req, res) => {
   }
 });
 
+// Get Linked Doctors (for E-Consultation Discovery)
+router.get('/linked-clinicians', verifyToken, async (req, res) => {
+  try {
+    const patientId = req.userId;
+    
+    // Fetch ALL appointments (ignoring the filter for planned calls)
+    const appointments = await Appointment.find({ patient: patientId })
+      .populate('doctor', 'name email specialization profilePhoto role')
+      .sort({ createdAt: -1 });
+
+    const linkedDoctors = [];
+    const doctorIds = new Set();
+    
+    appointments.forEach(app => {
+      if (app.doctor && !doctorIds.has(app.doctor._id.toString())) {
+        doctorIds.add(app.doctor._id.toString());
+        linkedDoctors.push(app.doctor);
+      }
+    });
+
+    res.json({
+      success: true,
+      doctors: linkedDoctors
+    });
+  } catch (error) {
+    console.error('Get linked clinicians error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // Get Appointments (Patient - their own appointments)
 router.get('/patient', verifyToken, async (req, res) => {
   try {
     const patientId = req.userId;
 
-    const appointments = await Appointment.find({ patient: patientId })
+    const appointments = await Appointment.find({ 
+      patient: patientId,
+      reason: { $ne: 'Planned Call' } 
+    })
       .populate('doctor', 'name email specialization licenseNumber')
       .sort({ appointmentDate: -1, appointmentTime: -1 });
 
@@ -139,7 +176,10 @@ router.get('/doctor', verifyToken, async (req, res) => {
   try {
     const doctorId = req.userId;
 
-    const appointments = await Appointment.find({ doctor: doctorId })
+    const appointments = await Appointment.find({ 
+      doctor: doctorId,
+      reason: { $ne: 'Planned Call' }
+    })
       .populate('patient', 'name email phone age gender address')
       .sort({ appointmentDate: -1, appointmentTime: -1 });
 
@@ -192,7 +232,7 @@ router.get('/all', verifyToken, async (req, res) => {
 // Update Appointment Status (Doctor/Admin)
 router.put('/:id/status', verifyToken, async (req, res) => {
   try {
-    const { status, notes, fee } = req.body;
+    const { status, notes, fee, appointmentDate, appointmentTime } = req.body;
     const appointmentId = req.params.id;
     const userId = req.userId;
 
@@ -228,6 +268,9 @@ router.put('/:id/status', verifyToken, async (req, res) => {
       appointment.status = status;
     }
 
+    if (appointmentDate) appointment.appointmentDate = appointmentDate;
+    if (appointmentTime) appointment.appointmentTime = appointmentTime;
+
     if (notes !== undefined) {
       appointment.notes = notes;
     }
@@ -242,12 +285,19 @@ router.put('/:id/status', verifyToken, async (req, res) => {
     await appointment.populate('doctor', 'name email specialization');
 
     // Create Notification for Patient
+    const isPlannedCall = appointment.reason === 'Planned Call';
+    const typeLabel = isPlannedCall ? 'Planned Call' : 'Appointment';
+    const msgLabel = isPlannedCall ? 'planned call' : 'appointment';
+    const actionLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
     const notification = new Notification({
       userId: appointment.patient._id,
       type: 'appointment',
-      title: `Appointment ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-      message: `Your appointment with Dr. ${appointment.doctor.name} on ${new Date(appointment.appointmentDate).toLocaleDateString()} has been ${status}.`,
-      relatedId: appointment._id
+      title: `${typeLabel} ${actionLabel}`,
+      message: `Your ${msgLabel} with Dr. ${appointment.doctor.name} on ${new Date(appointment.appointmentDate).toLocaleDateString()} has been ${status}.`,
+      relatedId: appointment._id,
+      actionPath: isPlannedCall ? null : '/appointments',
+      status: status === 'confirmed' ? 'completed' : status === 'cancelled' ? 'cancelled' : 'none'
     });
     await notification.save();
 
@@ -315,11 +365,15 @@ router.get('/:id', verifyToken, async (req, res) => {
 // Optional query: ?specialization=Cardiology (case-insensitive partial match)
 router.get('/doctors/list', verifyToken, async (req, res) => {
   try {
-    const { specialization } = req.query;
-    const filter = { role: 'doctor' };
+    const { specialization, city } = req.query;
+    const filter = { role: 'doctor', isVerified: true }; // Ensure only verified doctors appear
 
-    if (specialization && specialization.trim()) {
+    if (specialization && specialization.trim() && specialization !== 'All') {
       filter.specialization = { $regex: specialization.trim(), $options: 'i' };
+    }
+
+    if (city && city.trim()) {
+      filter.city = { $regex: city.trim(), $options: 'i' };
     }
 
     const doctors = await User.find(filter)

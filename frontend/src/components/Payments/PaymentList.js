@@ -15,7 +15,7 @@ const PaymentList = ({ userRole }) => {
 
   const fetchPayments = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       let endpoint = userRole === 'admin' ? '/api/payments/all' : '/api/payments/patient';
 
       const response = await axios.get(endpoint, {

@@ -6,8 +6,8 @@ const AdminConfig = require('../models/AdminConfig');
 const jwt = require('jsonwebtoken');
 
 // Generate JWT Token
-const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'your_super_secret_jwt_key_change_this_in_production', {
+const generateToken = (userId, role) => {
+  return jwt.sign({ userId, role }, process.env.JWT_SECRET || 'your_super_secret_jwt_key_change_this_in_production', {
     expiresIn: '30d'
   });
 };
@@ -26,7 +26,7 @@ const TOKEN_EXPIRY_MINUTES = 5;
 // Sign Up
 router.post('/signup', async (req, res) => {
   try {
-    const { name, email, password, role, specialization, licenseNumber, age, gender, phone, address } = req.body;
+    const { name, email, password, role, specialization, licenseNumber, age, gender, phone, city, address } = req.body;
 
     // Validation
     if (!name || !email || !password || !role) {
@@ -64,10 +64,16 @@ router.post('/signup', async (req, res) => {
     if (role === 'doctor') {
       userData.specialization = specialization || '';
       userData.licenseNumber = licenseNumber || '';
+      userData.city = city || '';
+      userData.address = address || '';
+      userData.age = age || null;
+      userData.gender = gender || null;
+      userData.phone = phone || '';
     } else if (role === 'patient') {
       userData.age = age || null;
       userData.gender = gender || null;
       userData.phone = phone || '';
+      userData.city = city || '';
       userData.address = address || '';
     }
 
@@ -75,7 +81,7 @@ router.post('/signup', async (req, res) => {
     await user.save();
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
 
     res.status(201).json({
       success: true,
@@ -135,7 +141,7 @@ router.post('/signin', async (req, res) => {
       // If pending verification, also allow login but flag it
       const verificationRequired = !user.isVerified;
       
-      const token = generateToken(user._id);
+      const token = generateToken(user._id, user.role);
 
       return res.json({
         success: true,
@@ -183,7 +189,7 @@ router.post('/signin', async (req, res) => {
     }
 
     // Generate token for non-admin users
-    const token = generateToken(user._id);
+    const token = generateToken(user._id, user.role);
 
     res.json({
       success: true,
@@ -344,7 +350,7 @@ router.post('/admin-verify', async (req, res) => {
       });
     }
 
-    const jwtToken = generateToken(user._id);
+    const jwtToken = generateToken(user._id, user.role);
 
     res.json({
       success: true,

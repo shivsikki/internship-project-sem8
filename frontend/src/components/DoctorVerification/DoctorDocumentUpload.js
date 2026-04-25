@@ -77,7 +77,7 @@ const DoctorDocumentUpload = () => {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const formData = new FormData();
       formData.append('image', file);
 
@@ -126,16 +126,16 @@ const DoctorDocumentUpload = () => {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.post('/api/auth/submit-verification', uploadedUrls, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       if (response.data.success) {
-        // Update user in localStorage with verification status
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        // Update user in sessionStorage with verification status
+        const user = JSON.parse(sessionStorage.getItem('user') || '{}');
         user.verificationStatus = 'pending';
-        localStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('user', JSON.stringify(user));
 
         setSuccess('Documents submitted successfully! Waiting for admin verification.');
         

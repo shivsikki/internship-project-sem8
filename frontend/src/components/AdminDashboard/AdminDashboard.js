@@ -49,9 +49,9 @@ const AdminDashboard = () => {
     doctorPerformance: []
   });
 
-  // Load user from localStorage
+  // Load user from sessionStorage
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = sessionStorage.getItem('user');
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
 
   const fetchPendingVerificationsCount = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.get('/api/auth/pending-doctors', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -82,7 +82,7 @@ const AdminDashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       
       // Fetch all necessary data
       const [usersRes, appointmentsRes, paymentsRes, prescriptionsRes, testsRes] = await Promise.all([

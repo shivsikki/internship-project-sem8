@@ -61,7 +61,9 @@ router.post('/create', verifyToken, async (req, res) => {
       message: status === 'pending' 
         ? `Dr. ${doctor.name} has requested a ${testName}. Please complete it at your earliest convenience.`
         : `Dr. ${doctor.name} has added a new ${testName} record to your profile.`,
-      relatedId: test._id
+      relatedId: test._id,
+      actionPath: '/tests',
+      status: status === 'pending' ? 'pending' : 'completed'
     });
     await notification.save();
 
@@ -72,6 +74,36 @@ router.post('/create', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Create test error:', error);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+});
+
+// Get Single Test Detail
+router.get('/detail/:id', verifyToken, async (req, res) => {
+  try {
+    const testId = req.params.id;
+    const userId = req.userId;
+
+    const test = await Test.findById(testId)
+      .populate('patient', 'name email')
+      .populate('doctor', 'name specialization');
+
+    if (!test) {
+      return res.status(404).json({ success: false, message: 'Test not found' });
+    }
+
+    const user = await User.findById(userId);
+    const isDoctor = user.role === 'doctor' && test.doctor._id.toString() === userId;
+    const isPatient = user.role === 'patient' && test.patient._id.toString() === userId;
+    const isAdmin = user.role === 'admin';
+
+    if (!isDoctor && !isPatient && !isAdmin) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    res.json({ success: true, test });
+  } catch (error) {
+    console.error('Get test detail error:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 });
@@ -140,18 +172,40 @@ router.put('/:id', verifyToken, async (req, res) => {
     const user = await User.findById(userId);
     const isDoctor = user.role === 'doctor' && test.doctor.toString() === userId;
     const isAdmin = user.role === 'admin';
+    const isPatient = user.role === 'patient' && test.patient.toString() === userId;
 
-    if (!isDoctor && !isAdmin) {
+    if (!isDoctor && !isAdmin && !isPatient) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
-    if (testResults !== undefined) test.testResults = testResults;
-    if (notes !== undefined) test.notes = notes;
-    if (status !== undefined) test.status = status;
-    if (bodyCheck !== undefined) test.bodyCheck = bodyCheck;
-    if (images !== undefined) test.images = images;
-    if (labResults !== undefined) test.labResults = labResults;
-    if (testDate !== undefined) test.testDate = testDate;
+    // Patients can only update results, notes, images, and set status to completed
+    if (isPatient) {
+      if (testResults !== undefined) test.testResults = testResults;
+      if (notes !== undefined) test.notes = notes;
+      if (images !== undefined) test.images = images;
+      if (status === 'completed') test.status = 'completed';
+      
+      // Notify doctor
+      const doctorNotification = new Notification({
+        userId: test.doctor,
+        type: 'test',
+        title: 'Test Results Uploaded',
+        message: `${user.name} has uploaded results for "${test.testName}".`,
+        relatedId: test._id,
+        actionPath: `/tests/results/${test._id}`,
+        status: 'completed'
+      });
+      await doctorNotification.save();
+    } else {
+      // Doctor/Admin can update everything
+      if (testResults !== undefined) test.testResults = testResults;
+      if (notes !== undefined) test.notes = notes;
+      if (status !== undefined) test.status = status;
+      if (bodyCheck !== undefined) test.bodyCheck = bodyCheck;
+      if (images !== undefined) test.images = images;
+      if (labResults !== undefined) test.labResults = labResults;
+      if (testDate !== undefined) test.testDate = testDate;
+    }
 
     await test.save();
     await test.populate('patient', 'name email');

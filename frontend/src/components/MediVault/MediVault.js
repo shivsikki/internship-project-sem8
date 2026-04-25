@@ -42,13 +42,13 @@ const MediVault = ({ searchQuery = '' }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [country, setCountry] = useState(() => {
-    const saved = localStorage.getItem('medivault_country');
+    const saved = sessionStorage.getItem('medivault_country');
     return saved || DEFAULT_COUNTRY;
   });
   const [isDetecting, setIsDetecting] = useState(false);
   const [cart, setCart] = useState(() => {
     try {
-      const saved = localStorage.getItem('medivault_cart');
+      const saved = sessionStorage.getItem('medivault_cart');
       return saved ? JSON.parse(saved) : [
         {
           id: 'med-1',
@@ -92,11 +92,11 @@ const MediVault = ({ searchQuery = '' }) => {
   const currency = CURRENCY_MAP[country] || CURRENCY_MAP[DEFAULT_COUNTRY];
 
   useEffect(() => {
-    localStorage.setItem('medivault_country', country);
+    sessionStorage.setItem('medivault_country', country);
   }, [country]);
 
   useEffect(() => {
-    localStorage.setItem('medivault_cart', JSON.stringify(cart));
+    sessionStorage.setItem('medivault_cart', JSON.stringify(cart));
   }, [cart]);
 
   const performSearch = async (searchTerm) => {

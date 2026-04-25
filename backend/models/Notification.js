@@ -8,7 +8,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['appointment', 'test', 'prescription', 'enquiry', 'system'],
+    enum: ['appointment', 'test', 'prescription', 'enquiry', 'system', 'chat', 'call'],
     required: true
   },
   title: {
@@ -23,8 +23,22 @@ const notificationSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'cancelled', 'urgent', 'none'],
+    default: 'none'
+  },
+  actionPath: {
+    type: String, // e.g., '/appointments' or '/tests'
+    default: null
+  },
   relatedId: {
-    type: String, // ID of appointment, test, etc.
+    type: String,
+    default: null
+  },
+  sender: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
     default: null
   },
   createdAt: {

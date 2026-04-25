@@ -524,7 +524,22 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.form-group textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--auth-line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--auth-ink);
+  font-size: 0.78rem;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  resize: vertical;
+  min-height: 30px;
+}
+
 .form-group input:focus,
+.form-group textarea:focus,
 .role-select:focus {
   border-color: rgba(63, 85, 71, 0.55);
   box-shadow: 0 0 0 4px rgba(63, 85, 71, 0.14);

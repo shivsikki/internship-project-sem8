@@ -46,13 +46,19 @@ const BookAppointment = () => {
     reason: '',
     city: ''
   });
+  const [selectedDoctorData, setSelectedDoctorData] = useState(null);
 
-  const fetchDoctors = async (specialization = '') => {
+  const fetchDoctors = async (specialization = '', city = '') => {
     try {
-      const token = localStorage.getItem('token');
-      const url = specialization
-        ? `/api/appointments/doctors/list?specialization=${encodeURIComponent(specialization)}`
-        : '/api/appointments/doctors/list';
+      const token = sessionStorage.getItem('token');
+      let url = '/api/appointments/doctors/list';
+      const params = new URLSearchParams();
+      
+      if (specialization && specialization !== 'All') params.append('specialization', specialization);
+      if (city && city.trim()) params.append('city', city.trim());
+      
+      if (params.toString()) url += `?${params.toString()}`;
+
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -71,13 +77,12 @@ const BookAppointment = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedSpecialty === null) return;
-    if (selectedSpecialty === 'All') {
-      fetchDoctors();
-    } else {
-      fetchDoctors(selectedSpecialty);
-    }
-  }, [selectedSpecialty]);
+    const delayDebounceFn = setTimeout(() => {
+      fetchDoctors(selectedSpecialty || '', formData.city);
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [selectedSpecialty, formData.city]);
 
   const handleSpecialtyClick = (specialty) => {
     setSelectedSpecialty(specialty);
@@ -85,10 +90,17 @@ const BookAppointment = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    if (name === 'doctorId') {
+      const doc = doctors.find(d => d._id === value);
+      setSelectedDoctorData(doc);
+    }
+
     setError('');
     setSuccess('');
   };
@@ -100,7 +112,7 @@ const BookAppointment = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.post('/api/appointments/create', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -189,21 +201,19 @@ const BookAppointment = () => {
             </div>
 
             <div className="form-group">
-              <label>Select Doctor</label>
               <select
                 name="doctorId"
                 value={formData.doctorId}
                 onChange={handleChange}
                 required
                 className="form-select"
-                disabled={!selectedSpecialty}
               >
                 <option value="">
-                  {selectedSpecialty
-                    ? doctors.length > 0
-                      ? 'Choose a doctor...'
-                      : 'No doctors in this specialty'
-                    : 'Select a specialty first'}
+                  {doctors.length > 0
+                    ? 'Choose a doctor...'
+                    : formData.city || (selectedSpecialty && selectedSpecialty !== 'All')
+                      ? 'No matching doctors found'
+                      : 'Choose specialization/city first'}
                 </option>
                 {doctors.map((doctor) => (
                   <option key={doctor._id} value={doctor._id}>
@@ -265,34 +275,89 @@ const BookAppointment = () => {
       </div>
 
         <div className="book-appointment-part book-appointment-part-3 page-block">
-          <div className="appointment-card appointment-book-form info-card card-animated">
-            <h2 className="section-title">Additional info</h2>
-            <div className="info-content">
-              <div className="info-section">
-                <h3>Clinic Hours</h3>
-                <p>Mon – Fri: 9:00 AM – 5:00 PM</p>
-                <p>Sat: 9:00 AM – 1:00 PM</p>
-                <p>Sun: Closed</p>
-                <p>Closed on public holidays. Extended hours may apply during flu season; please check our website for updates.</p>
+          {selectedDoctorData ? (
+            <div className="doctor-profile-card card-animated">
+              <div className="profile-header">
+                <div className="profile-photo-circle">
+                  {selectedDoctorData.profilePhoto ? (
+                    <img src={selectedDoctorData.profilePhoto} alt={`Dr. ${selectedDoctorData.name}`} />
+                  ) : (
+                    <span>DR</span>
+                  )}
+                </div>
+                <div className="profile-title">
+                  <h2>Dr. {selectedDoctorData.name}</h2>
+                  <p className="specialty-pill">{selectedDoctorData.specialization || 'General Practitioner'}</p>
+                </div>
               </div>
-              <div className="info-section">
-                <h3>Before Your Visit</h3>
-                <ul>
-                  <li>Bring your ID and insurance card</li>
-                  <li>Arrive 10–15 minutes early for registration</li>
-                  <li>List all current medications and dosages</li>
-                  <li>Note any allergies or past medical history relevant to your visit</li>
-                </ul>
+
+              <div className="profile-body">
+                <div className="profile-stat-row">
+                  <div className="stat-item">
+                    <span className="stat-label">Experience</span>
+                    <span className="stat-value">8+ Years</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Rating</span>
+                    <span className="stat-value">⭐ 4.9</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-label">Consultation</span>
+                    <span className="stat-value">₹800</span>
+                  </div>
+                </div>
+
+                <div className="profile-bio">
+                  <h3>About the Doctor</h3>
+                  <p>
+                    Dr. {selectedDoctorData.name} is a highly skilled professional 
+                    specializing in {selectedDoctorData.specialization || 'general clinical care'}. 
+                    With a focus on patient-centered treatment and modern diagnostics.
+                  </p>
+                </div>
+
+                <div className="profile-credentials">
+                  <div className="cred-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>License: {selectedDoctorData.licenseNumber || 'Verified Clinician'}</span>
+                  </div>
+                  <div className="cred-item">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    <span>Location: {selectedDoctorData.city || 'Hippocrates Center'}</span>
+                  </div>
+                </div>
               </div>
-              <div className="info-section">
-                <h3>Contact</h3>
-                <p>General inquiries: (012) 345-6789</p>
-                <p>Appointment line: (012) 345-6790</p>
-                <p>For medical emergencies, call emergency services immediately.</p>
-                <p>Email: appointments@hippocrateslab.com</p>
+
+              <div className="profile-footer">
+                <p>Available for Secure Remote Call</p>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="appointment-card appointment-book-form info-card card-animated">
+              <h2 className="section-title">Additional info</h2>
+              <div className="info-content">
+                <div className="info-section">
+                  <h3>Clinic Hours</h3>
+                  <p>Mon – Fri: 9:00 AM – 5:00 PM</p>
+                  <p>Sat: 9:00 AM – 1:00 PM</p>
+                  <p>Sun: Closed</p>
+                </div>
+                <div className="info-section">
+                  <h3>Before Your Visit</h3>
+                  <ul>
+                    <li>Bring your ID and insurance card</li>
+                    <li>Arrive 10–15 minutes early</li>
+                    <li>List all current medications</li>
+                  </ul>
+                </div>
+                <div className="info-section">
+                  <h3>Contact</h3>
+                  <p>Emergency: Call 911</p>
+                  <p>Email: appointments@hippocrateslab.com</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </div>

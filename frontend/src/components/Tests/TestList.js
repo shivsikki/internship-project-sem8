@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import GlitchText from '../GlitchText/GlitchText';
@@ -14,6 +15,9 @@ const TestList = ({ patientId, userRole }) => {
     notes: '',
     status: ''
   });
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [expandedImage, setExpandedImage] = useState(null);
 
   useEffect(() => {
     fetchTests();
@@ -21,7 +25,7 @@ const TestList = ({ patientId, userRole }) => {
 
   const fetchTests = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       let endpoint = '';
 
       if (userRole === 'patient') {
@@ -46,7 +50,7 @@ const TestList = ({ patientId, userRole }) => {
 
   const handleUpdate = async (testId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const updateData = {};
       if (updateForm.testResults) updateData.testResults = updateForm.testResults;
       if (updateForm.notes !== undefined) updateData.notes = updateForm.notes;
@@ -66,6 +70,57 @@ const TestList = ({ patientId, userRole }) => {
       alert(err.response?.data?.message || 'Failed to update test');
     }
   };
+
+  const handlePatientUpload = async (testId) => {
+    if (selectedFiles.length === 0 && !updateForm.notes) {
+      alert('Please provide a note or at least one image.');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const uploadedImages = [];
+
+      // Upload each file to Cloudinary
+      for (const file of selectedFiles) {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const res = await axios.post('/api/upload', formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        if (res.data.success) {
+          uploadedImages.push({ url: res.data.url, fileName: res.data.fileName });
+        }
+      }
+
+      // Update the test record
+      await axios.put(`/api/tests/${testId}`, {
+        images: uploadedImages,
+        notes: updateForm.notes,
+        status: 'completed'
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      alert('Results uploaded successfully! Your doctor has been notified.');
+      setSelectedTest(null);
+      setSelectedFiles([]);
+      setUpdateForm({ testResults: '', notes: '', status: '' });
+      fetchTests();
+    } catch (err) {
+      console.error('Patient upload error:', err);
+      alert('Failed to upload results.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -98,7 +153,7 @@ const TestList = ({ patientId, userRole }) => {
     const statusText = { completed: [22, 101, 52], pending: [133, 77, 14], cancelled: [239, 68, 68] };
     const sc = statusColors[t.status] || [243, 244, 246];
     const st = statusText[t.status] || [75, 85, 99];
-    
+
     doc.setFillColor(...sc);
     doc.roundedRect(pageW - margin - 80, y, 80, 22, 5, 5, 'F');
     doc.setTextColor(...st);
@@ -128,7 +183,7 @@ const TestList = ({ patientId, userRole }) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
     doc.text(t.testName, margin, y + 20);
-    
+
     doc.setTextColor(150, 150, 150);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
@@ -138,52 +193,52 @@ const TestList = ({ patientId, userRole }) => {
 
     // Body Checks Grid
     if (Object.keys(t.bodyCheck || {}).some(k => t.bodyCheck[k])) {
-        doc.setTextColor(156, 163, 175);
+      doc.setTextColor(156, 163, 175);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.text('BODY CHECK PARAMETERS', margin, y);
+      y += 14;
+
+      const checks = [
+        { label: 'BP', val: t.bodyCheck.bloodPressure },
+        { label: 'HR', val: t.bodyCheck.heartRate ? `${t.bodyCheck.heartRate} bpm` : null },
+        { label: 'TEMP', val: t.bodyCheck.temperature ? `${t.bodyCheck.temperature}°F` : null },
+        { label: 'WEIGHT', val: t.bodyCheck.weight ? `${t.bodyCheck.weight} kg` : null },
+        { label: 'BMI', val: t.bodyCheck.bmi },
+        { label: 'O2', val: t.bodyCheck.oxygenLevel ? `${t.bodyCheck.oxygenLevel}%` : null }
+      ].filter(c => c.val);
+
+      doc.setFillColor(250, 250, 245);
+      doc.roundedRect(margin, y, pageW - margin * 2, 40, 8, 8, 'F');
+
+      let subX = margin + 20;
+      checks.forEach(c => {
+        doc.setTextColor(140, 140, 140);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7.5);
-        doc.text('BODY CHECK PARAMETERS', margin, y);
-        y += 14;
-
-        const checks = [
-            { label: 'BP', val: t.bodyCheck.bloodPressure },
-            { label: 'HR', val: t.bodyCheck.heartRate ? `${t.bodyCheck.heartRate} bpm` : null },
-            { label: 'TEMP', val: t.bodyCheck.temperature ? `${t.bodyCheck.temperature}°F` : null },
-            { label: 'WEIGHT', val: t.bodyCheck.weight ? `${t.bodyCheck.weight} kg` : null },
-            { label: 'BMI', val: t.bodyCheck.bmi },
-            { label: 'O2', val: t.bodyCheck.oxygenLevel ? `${t.bodyCheck.oxygenLevel}%` : null }
-        ].filter(c => c.val);
-
-        doc.setFillColor(250, 250, 245);
-        doc.roundedRect(margin, y, pageW - margin * 2, 40, 8, 8, 'F');
-        
-        let subX = margin + 20;
-        checks.forEach(c => {
-            doc.setTextColor(140, 140, 140);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(7);
-            doc.text(c.label, subX, y + 14);
-            doc.setTextColor(60, 80, 60);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(10);
-            doc.text(String(c.val), subX, y + 28);
-            subX += (pageW - margin * 2) / checks.length;
-        });
-        y += 54;
+        doc.setFontSize(7);
+        doc.text(c.label, subX, y + 14);
+        doc.setTextColor(60, 80, 60);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text(String(c.val), subX, y + 28);
+        subX += (pageW - margin * 2) / checks.length;
+      });
+      y += 54;
     }
 
     // Results & Notes
     const printField = (label, value) => {
-        if (!value) return;
-        doc.setTextColor(156, 163, 175);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(7.5);
-        doc.text(label, margin, y);
-        doc.setTextColor(50, 62, 50);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        const lines = doc.splitTextToSize(value, pageW - margin * 2);
-        doc.text(lines, margin, y + 14);
-        y += 14 + lines.length * 13 + 12;
+      if (!value) return;
+      doc.setTextColor(156, 163, 175);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.text(label, margin, y);
+      doc.setTextColor(50, 62, 50);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      const lines = doc.splitTextToSize(value, pageW - margin * 2);
+      doc.text(lines, margin, y + 14);
+      y += 14 + lines.length * 13 + 12;
     };
 
     printField('DIAGNOSTIC RESULTS', t.testResults);
@@ -205,17 +260,12 @@ const TestList = ({ patientId, userRole }) => {
     return <div className="tests-loading">Loading tests...</div>;
   }
 
+  const zoomImage = (url) => {
+    setExpandedImage(url);
+  };
+
   return (
     <div className="tests-list-container">
-      <header className="tests-list-hero">
-        <div className="tests-hero-bg" aria-hidden="true" />
-        <div className="tests-hero-content">
-          <p className="tests-hero-eyebrow">DIAGNOSTICS</p>
-          <AnimatedHeading text="Clinical Test Records" />
-          <p className="tests-hero-subtitle">Access your laboratory results and physiological assessments.</p>
-        </div>
-      </header>
-
       {tests.length === 0 ? (
         <div className="empty-state-center page-block">
           <GlitchText speed={1} enableShadows enableOnHover={false}>
@@ -223,80 +273,136 @@ const TestList = ({ patientId, userRole }) => {
           </GlitchText>
         </div>
       ) : (
-        <div className="tests-grid">
-          {tests.map((test, index) => (
-            <div
-              key={test._id}
-              className={`test-card-item card-animated status-${test.status}`}
-              style={{ animationDelay: `${index * 0.05}s` }}
-            >
-              <div className="test-card-top">
-                <div className="test-date-block">
-                  <span className="test-date-label">RECORDED ON</span>
-                  <span className="test-date-value">{formatDate(test.testDate)}</span>
+        <>
+          {/* History / Assigned Section comes FIRST now */}
+          <div className="tests-section">
+            <h3 className="section-subtitle-modern">Assigned Tests & Medical Records</h3>
+            <div className="tests-grid">
+              {tests.filter(t => t.status !== 'pending').map((test, index) => (
+                <div
+                  key={test._id}
+                  className={`test-card-item card-animated status-${test.status}`}
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <div className="test-card-top">
+                    <div className="test-date-block">
+                      <span className="test-date-label">COMPLETED ON</span>
+                      <span className="test-date-value">{formatDate(test.testDate)}</span>
+                    </div>
+                    <span className={`test-status-pill status-${test.status}`}>
+                      {test.status}
+                    </span>
+                  </div>
+
+                  <div className="test-card-body">
+                    <div className="test-main-section">
+                      <span className="v2-label">{test.testType}</span>
+                      <h4 className="test-main-title">{test.testName}</h4>
+                      {test.doctor && (
+                        <p className="test-physician-tag">Physician: Dr. {test.doctor.name}</p>
+                      )}
+                    </div>
+
+                    {test.images && test.images.length > 0 && (
+                      <div className="test-card-images">
+                        {test.images.map((img, idx) => (
+                          <div 
+                            key={idx} 
+                            className="card-thumb-wrapper"
+                            onClick={() => zoomImage(img.url)}
+                          >
+                            <img src={img.url} alt="Result scan" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {Object.keys(test.bodyCheck || {}).some(key => test.bodyCheck[key]) && (
+                      <div className="test-stats-grid">
+                        {test.bodyCheck.bloodPressure && (
+                          <div className="stat-pill"><span className="stat-label">BP</span>{test.bodyCheck.bloodPressure}</div>
+                        )}
+                        {test.bodyCheck.heartRate && (
+                          <div className="stat-pill"><span className="stat-label">HR</span>{test.bodyCheck.heartRate} bpm</div>
+                        )}
+                        {test.bodyCheck.oxygenLevel && (
+                          <div className="stat-pill"><span className="stat-label">O2</span>{test.bodyCheck.oxygenLevel}%</div>
+                        )}
+                        {test.bodyCheck.weight && (
+                          <div className="stat-pill"><span className="stat-label">WT</span>{test.bodyCheck.weight}kg</div>
+                        )}
+                      </div>
+                    )}
+
+                    {test.testResults && (
+                      <div className="test-results-block">
+                        <span className="v2-label">RESULTS SUMMARY</span>
+                        <p className="test-text-content">{test.testResults}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="test-actions-row">
+                    <button className="download-pdf-btn" onClick={() => downloadPDF(test)}>
+                      ↓ Report PDF
+                    </button>
+                    {userRole === 'doctor' && (
+                      <button onClick={() => setSelectedTest(test)} className="update-button">
+                        Edit
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <span className={`test-status-pill status-${test.status}`}>
-                  {test.status}
-                </span>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              <div className="test-card-body">
-                <div className="test-main-section">
-                  <span className="v2-label">{test.testType}</span>
-                  <h4 className="test-main-title">{test.testName}</h4>
-                  {test.doctor && (
-                    <p className="test-physician-tag">Ordered by Dr. {test.doctor.name}</p>
-                  )}
-                </div>
-
-                {Object.keys(test.bodyCheck || {}).some(key => test.bodyCheck[key]) && (
-                  <div className="test-stats-grid">
-                    {test.bodyCheck.bloodPressure && (
-                      <div className="stat-pill"><span className="stat-label">BP</span>{test.bodyCheck.bloodPressure}</div>
-                    )}
-                    {test.bodyCheck.heartRate && (
-                      <div className="stat-pill"><span className="stat-label">HR</span>{test.bodyCheck.heartRate} bpm</div>
-                    )}
-                    {test.bodyCheck.oxygenLevel && (
-                      <div className="stat-pill"><span className="stat-label">O2</span>{test.bodyCheck.oxygenLevel}%</div>
-                    )}
-                    {test.bodyCheck.weight && (
-                      <div className="stat-pill"><span className="stat-label">WT</span>{test.bodyCheck.weight}kg</div>
-                    )}
+          {/* Pending / Ordered Section comes BELOW now */}
+          {tests.some(t => t.status === 'pending') && (
+            <div className="tests-section">
+              <h3 className="section-subtitle-modern">Ordered Tests Awaiting Action</h3>
+              <div className="tests-grid">
+                {tests.filter(t => t.status === 'pending').map((test, index) => (
+                  <div
+                    key={test._id}
+                    className={`test-card-item card-animated status-pending`}
+                    style={{ animationDelay: `${index * 0.05}s` }}
+                  >
+                    <div className="test-card-top">
+                      <div className="test-date-block">
+                        <span className="test-date-label">ORDERED ON</span>
+                        <span className="test-date-value">{formatDate(test.createdAt || test.testDate)}</span>
+                      </div>
+                      <span className="test-status-pill status-pending">Action Required</span>
+                    </div>
+                    <div className="test-card-body">
+                      <div className="test-main-section">
+                        <span className="v2-label">{test.testType}</span>
+                        <h4 className="test-main-title">{test.testName}</h4>
+                        {test.doctor && (
+                          <p className="test-physician-tag">By Dr. {test.doctor.name}</p>
+                        )}
+                      </div>
+                      <div className="test-pending-info">
+                        <p>This test order has been sent to your profile. Please upload results or visit the clinic for sample collection.</p>
+                      </div>
+                    </div>
+                    <div className="test-actions-row">
+                      {userRole === 'doctor' ? (
+                        <button onClick={() => setSelectedTest(test)} className="update-button">Update Status</button>
+                      ) : (
+                        <button onClick={() => setSelectedTest(test)} className="update-button">Provide Details / Upload</button>
+                      )}
+                    </div>
                   </div>
-                )}
-
-                {test.testResults && (
-                  <div className="test-results-block">
-                    <span className="v2-label">RESULTS</span>
-                    <p className="test-text-content">{test.testResults}</p>
-                  </div>
-                )}
-
-                {test.notes && (
-                  <div className="test-notes-block">
-                    <span className="v2-label">CLINICAL NOTES</span>
-                    <p className="test-text-content">{test.notes}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="test-actions-row">
-                <button className="download-pdf-btn" onClick={() => downloadPDF(test)}>
-                  ↓ Download Report
-                </button>
-                {userRole === 'doctor' && (
-                  <button onClick={() => setSelectedTest(test)} className="update-button">
-                    Update Record
-                  </button>
-                )}
+                ))}
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
-      {/* Update Modal */}
+      {/* Doctor Update Modal */}
       {selectedTest && userRole === 'doctor' && (
         <div className="modal-overlay" onClick={() => setSelectedTest(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -348,6 +454,78 @@ const TestList = ({ patientId, userRole }) => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Patient Upload Modal - Portal Rendering */}
+      {selectedTest && userRole === 'patient' && createPortal(
+        <div className="modal-overlay glass-overlay" onClick={() => setSelectedTest(null)}>
+          <div className="modal-content patient-upload-modal modern-box" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="section-title">Upload Results: {selectedTest.testName}</h3>
+              <button className="close-x" onClick={() => setSelectedTest(null)}>&times;</button>
+            </div>
+
+            <p className="modal-instruction">Please upload your laboratory scans or diagnostic reports and add any relevant notes for your physician.</p>
+
+            <div className="form-group">
+              <label>Medical Images / Scans</label>
+              <div className="file-upload-zone">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
+                  id="patient-file-input"
+                  className="hidden-file-input"
+                />
+                <label htmlFor="patient-file-input" className="file-upload-label">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  {selectedFiles.length > 0 ? `${selectedFiles.length} files selected` : 'Click to select images/scans'}
+                </label>
+              </div>
+              {selectedFiles.length > 0 && (
+                <div className="file-preview-list">
+                  {selectedFiles.map((f, i) => (
+                    <div key={i} className="preview-snippet">{f.name}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>Clinical Notes</label>
+              <textarea
+                value={updateForm.notes}
+                onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
+                className="form-textarea"
+                rows="4"
+                placeholder="Ex: I felt slightly dizzy during the blood collection..."
+              />
+            </div>
+
+            <div className="modal-actions full-width">
+              <button
+                onClick={() => handlePatientUpload(selectedTest._id)}
+                className="submit-button primary"
+                disabled={uploading}
+              >
+                {uploading ? 'Uploading Clinical Data...' : 'Send to Doctor'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+      {/* Image Zoom Overlay for Patients */}
+      {expandedImage && (
+        <div className="image-zoom-overlay" onClick={() => setExpandedImage(null)}>
+          <img src={expandedImage} alt="Expanded Scan" />
+          <button className="zoom-close" onClick={() => setExpandedImage(null)}>&times;</button>
         </div>
       )}
     </div>

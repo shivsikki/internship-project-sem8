@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import './DoctorVerification.css';
 
 const DoctorVerification = () => {
@@ -16,7 +17,7 @@ const DoctorVerification = () => {
   const fetchPendingDoctors = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.get('/api/auth/pending-doctors', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -31,7 +32,7 @@ const DoctorVerification = () => {
   const handleVerification = async (doctorId, action) => {
     try {
       setActionInProgress(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       await axios.post('/api/auth/verify-doctor', 
         { doctorId, action },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -113,14 +114,17 @@ const DoctorVerification = () => {
   );
 
   return (
-    <div className="admin-doctor-verification">
-      <div className="admin-verification-header">
-        <h2>Doctor Verification</h2>
-        <p>Review and verify doctor applications</p>
-        <span className="pending-count">
-          {pendingDoctors.length} pending {pendingDoctors.length === 1 ? 'application' : 'applications'}
-        </span>
-      </div>
+    <div className="admin-doctor-verification view-fade-in">
+      <header className="medivault-hero">
+        <div className="hero-bg-pattern" aria-hidden="true" />
+        <div className="medivault-hero-content">
+          <p className="medivault-hero-eyebrow">Administrative Service</p>
+          <AnimatedHeading text="Doctor Verification" />
+          <p className="medivault-hero-subtitle">
+            Review and verify incoming doctor applications. Current pending: <strong>{pendingDoctors.length} applications</strong>.
+          </p>
+        </div>
+      </header>
 
       {error && <div className="admin-verification-error">{error}</div>}
 

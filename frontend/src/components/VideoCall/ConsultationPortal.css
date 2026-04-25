@@ -643,3 +643,155 @@
     align-self: flex-start;
   }
 }
+
+/* Planning Form */
+/* Planning Modal Overlay */
+.planning-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.05); /* Frosted glass base */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 99999; /* ABOVE EVERYTHING ELSE */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.planning-modal-content {
+  background: #ffffff;
+  width: 90%;
+  max-width: 440px;
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+  animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: #2c3e2d;
+  letter-spacing: -0.02em;
+}
+
+.close-modal-btn {
+  background: #f3f4f6;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.close-modal-btn:hover {
+  background: #e5e7eb;
+  color: #1f2937;
+  transform: rotate(90deg);
+}
+
+.modal-subtitle {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.planning-form-container.popup-mode {
+  background: transparent;
+  padding: 0;
+  border: none;
+  margin-top: 0;
+  animation: none;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.planning-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.planning-input-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.planning-input-group input {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+  background: #fdfdfd;
+}
+
+.planning-input-group input:focus {
+  border-color: #3f5038;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(63, 80, 56, 0.05);
+}
+
+.confirm-plan-btn {
+  background: #3f5038;
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  margin-top: 10px;
+}
+
+.confirm-plan-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(63, 80, 56, 0.15);
+  opacity: 0.95;
+}
+
+.confirm-plan-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.discovery-call-btn.plan-call.cancel {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fecaca;
+}

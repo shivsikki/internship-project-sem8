@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import JitsiCall from './JitsiCall';
@@ -11,6 +12,9 @@ const ConsultationPortal = ({ userRole }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeCall, setActiveCall] = useState(null);
+  const [planningUserId, setPlanningUserId] = useState(null);
+  const [planningForm, setPlanningForm] = useState({ date: '', time: '' });
+  const [planningLoading, setPlanningLoading] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'start') {
@@ -50,12 +54,24 @@ const ConsultationPortal = ({ userRole }) => {
   const fetchDiscoveryUsers = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/users/list', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.data.success) {
-        setUsers(response.data.users);
+      const token = sessionStorage.getItem('token');
+      
+      if (userRole === 'patient') {
+        // Patients only see doctors they have appointments with
+        const response = await axios.get('/api/appointments/linked-clinicians', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data.success) {
+          setUsers(response.data.doctors);
+        }
+      } else {
+        // Doctors see all patients (discovery mode)
+        const response = await axios.get('/api/users/list', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data.success) {
+          setUsers(response.data.users);
+        }
       }
     } catch (err) {
       console.error('Error fetching discovery users:', err);
@@ -67,7 +83,7 @@ const ConsultationPortal = ({ userRole }) => {
   const fetchConsultationHistory = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const endpoint = userRole === 'patient' ? '/api/appointments/patient' : '/api/appointments/doctor';
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
@@ -86,11 +102,24 @@ const ConsultationPortal = ({ userRole }) => {
     }
   };
 
-  const startAdhocCall = (targetUser) => {
-    const currentUserId = JSON.parse(localStorage.getItem('user'))?._id;
+  const startAdhocCall = async (targetUser) => {
+    const currentUserId = JSON.parse(sessionStorage.getItem('user'))?._id;
     const ids = [currentUserId, targetUser._id].sort().join('-');
     const roomName = `Hippocrates-Consult-${ids}`;
     
+    // Notify the other user via Enquiries Hub
+    try {
+      const token = sessionStorage.getItem('token');
+      await axios.post('/api/chat/start-call', {
+        receiverId: targetUser._id,
+        roomName: roomName
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (err) {
+      console.error('Failed to send call notification:', err);
+    }
+
     // OPEN INTERNAL ROUTE (Triggers FullscreenCall.js)
     const callWindow = window.open(`/video-call/${roomName}`, '_blank', 'noopener,noreferrer');
     
@@ -101,6 +130,40 @@ const ConsultationPortal = ({ userRole }) => {
       windowRef: callWindow // Store reference for monitoring
     });
   };
+
+  const submitPlannedCall = async (targetUser) => {
+    if (!planningForm.date || !planningForm.time) {
+      alert('Please select both date and time');
+      return;
+    }
+
+    setPlanningLoading(true);
+    try {
+      const token = sessionStorage.getItem('token');
+      const user = JSON.parse(sessionStorage.getItem('user'));
+      const city = user?.city || 'Tele-health';
+
+      await axios.post('/api/appointments/create', {
+        doctorId: targetUser._id,
+        appointmentDate: planningForm.date,
+        appointmentTime: planningForm.time,
+        reason: 'Planned Call',
+        city: city
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      alert('Call request sent! The doctor will confirm it in their Hub.');
+      setPlanningUserId(null);
+      setPlanningForm({ date: '', time: '' });
+    } catch (err) {
+      console.error('Error planning call:', err);
+      alert(err.response?.data?.message || 'Failed to plan call');
+    } finally {
+      setPlanningLoading(false);
+    }
+  };
+
 
   const filteredUsers = users.filter(u => 
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,7 +259,7 @@ const ConsultationPortal = ({ userRole }) => {
                   <div className="discovery-search-box">
                     <input 
                       type="text" 
-                      placeholder="Find a patient by name, ID, or case number..."
+                      placeholder={userRole === 'patient' ? "Search my doctors..." : "Find a patient by name, ID, or case number..."}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="discovery-search-input"
@@ -229,79 +292,130 @@ const ConsultationPortal = ({ userRole }) => {
 
             <div className="portal-tab-content">
               {activeTab === 'start' ? (
-                <div className="discovery-section">
-                  {loading ? (
-                    <div className="portal-status-msg">Searching availability...</div>
-                  ) : filteredUsers.length === 0 ? (
-                    <div className="empty-discovery">
-                      <div className="empty-icon">👥</div>
-                      <h3>No Users Found</h3>
-                      <p>Try searching with another name or category.</p>
-                    </div>
-                  ) : (
-                    <div className="discovery-grid">
-                      {filteredUsers.map((target, idx) => (
-                        <div key={target._id} className="discovery-card card-animated" style={{ animationDelay: `${idx * 0.05}s` }}>
-                          <div className="discovery-card-header">
-                            <div className="discovery-avatar-wrapper">
-                              <div className="discovery-avatar">
-                                {target.name.charAt(0)}
+                <>
+                  <div className="discovery-section">
+                    {loading ? (
+                      <div className="portal-status-msg">Searching availability...</div>
+                    ) : filteredUsers.length === 0 ? (
+                      <div className="empty-discovery">
+                        <div className="empty-icon">👥</div>
+                        <h3>No Users Found</h3>
+                        <p>Try searching with another name or category.</p>
+                      </div>
+                    ) : (
+                      <div className="discovery-grid">
+                        {filteredUsers.map((target, idx) => (
+                          <div key={target._id} className="discovery-card card-animated" style={{ animationDelay: `${idx * 0.05}s` }}>
+                            <div className="discovery-card-header">
+                              <div className="discovery-avatar-wrapper">
+                                <div className="discovery-avatar">
+                                  {target?.name ? target.name.charAt(0) : '?'}
+                                </div>
+                              </div>
+                              <div className="discovery-info">
+                                <span className="discovery-eyebrow">{target?.role === 'doctor' ? 'Clinical Provider' : 'Direct Patient'}</span>
+                                <h4 className="discovery-name">
+                                  {target?.role === 'doctor' ? `Dr. ${target.name}` : target?.name || 'Unknown User'}
+                                </h4>
                               </div>
                             </div>
-                            <div className="discovery-info">
-                              <span className="discovery-eyebrow">Medical Professional</span>
-                              <h4 className="discovery-name">
-                                {target.role === 'doctor' ? `Dr. ${target.name}` : target.name}
-                              </h4>
+
+                            <div className="discovery-stats">
+                              <div className="discovery-stat">
+                                <span className="stat-label">DEPARTMENT</span>
+                                <span className="stat-value">{target.role === 'doctor' ? target.specialization : 'General'}</span>
+                              </div>
+                              <div className="discovery-stat">
+                                <span className="stat-label">ROLE</span>
+                                <span className="stat-value">
+                                  {target?.role ? (target.role.charAt(0).toUpperCase() + target.role.slice(1)) : 'N/A'}
+                                </span>
+                              </div>
+                              <div className="discovery-stat">
+                                <span className="stat-label">STATUS</span>
+                                <span className="stat-value active">Available</span>
+                              </div>
+                            </div>
+
+                            <div className="discovery-divider"></div>
+
+                            <div className="discovery-footer">
+                              {userRole === 'doctor' && (
+                                <button 
+                                  className="discovery-call-btn start-call"
+                                  onClick={() => startAdhocCall(target)}
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M23 7l-7 5 7 5V7z"></path>
+                                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                  </svg>
+                                  Start Call
+                                </button>
+                              )}
+                              <button 
+                                className="discovery-call-btn plan-call"
+                                onClick={() => setPlanningUserId(target._id)}
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                Plan Call
+                              </button>
                             </div>
                           </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-                          <div className="discovery-stats">
-                            <div className="discovery-stat">
-                              <span className="stat-label">DEPARTMENT</span>
-                              <span className="stat-value">{target.role === 'doctor' ? target.specialization : 'General'}</span>
-                            </div>
-                            <div className="discovery-stat">
-                              <span className="stat-label">ROLE</span>
-                              <span className="stat-value">{target.role.charAt(0).toUpperCase() + target.role.slice(1)}</span>
-                            </div>
-                            <div className="discovery-stat">
-                              <span className="stat-label">STATUS</span>
-                              <span className="stat-value active">Available</span>
-                            </div>
-                          </div>
-
-                          <div className="discovery-divider"></div>
-
-                          <div className="discovery-footer">
-                            <button 
-                              className="discovery-call-btn start-call"
-                              onClick={() => startAdhocCall(target)}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M23 7l-7 5 7 5V7z"></path>
-                                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
-                              </svg>
-                              Start Call
-                            </button>
-                            <button 
-                              className="discovery-call-btn plan-call"
-                              onClick={() => alert('Planning feature coming soon: This will integrate with your clinical calendar.')}
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                              </svg>
-                              Plan Call
-                            </button>
-                          </div>
+                  {/* Planning Modal Overlay - Rendered in Portal to blur the WHOLE website */}
+                  {planningUserId && createPortal(
+                    <div className="planning-modal-overlay" onClick={() => setPlanningUserId(null)}>
+                      <div className="planning-modal-content" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                          <h3>Schedule Consultation</h3>
+                          <button className="close-modal-btn" onClick={() => setPlanningUserId(null)}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 6L6 18M6 6l12 12"></path>
+                            </svg>
+                          </button>
                         </div>
-                      ))}
-                    </div>
+                        <p className="modal-subtitle">Pick a preferred time for your session with {users.find(u => u._id === planningUserId)?.role === 'doctor' ? 'Dr. ' : ''}{users.find(u => u._id === planningUserId)?.name}.</p>
+                        
+                        <div className="planning-form-container popup-mode">
+                          <div className="planning-input-group">
+                            <label>Appointment Date</label>
+                            <input 
+                              type="date" 
+                              min={new Date().toISOString().split('T')[0]}
+                              value={planningForm.date}
+                              onChange={(e) => setPlanningForm({ ...planningForm, date: e.target.value })}
+                            />
+                          </div>
+                          <div className="planning-input-group">
+                            <label>Preferred Time Slot</label>
+                            <input 
+                              type="time" 
+                              value={planningForm.time}
+                              onChange={(e) => setPlanningForm({ ...planningForm, time: e.target.value })}
+                            />
+                          </div>
+                          <button 
+                            className="confirm-plan-btn"
+                            onClick={() => submitPlannedCall(users.find(u => u._id === planningUserId))}
+                            disabled={planningLoading}
+                          >
+                            {planningLoading ? 'Processing Request...' : 'Confirm Call Request'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>,
+                    document.body
                   )}
-                </div>
+                </>
               ) : (
                 <div className="history-section">
                   {loading ? (

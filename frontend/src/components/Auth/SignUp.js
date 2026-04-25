@@ -21,8 +21,23 @@ const SignUp = () => {
     age: '',
     gender: '',
     phone: '',
+    city: '',
     address: ''
   });
+
+  const doctorSpecializations = [
+    'General Practice',
+    'Cardiovascular',
+    'Neurological',
+    'Orthopedic',
+    'Dermatology',
+    'Pediatrics',
+    'Psychiatry',
+    'Gastroenterology',
+    'Ophthalmology',
+    'ENT',
+    'Ayurvedic'
+  ];
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -59,8 +74,8 @@ const SignUp = () => {
       const response = await axios.post('/api/auth/signup', dataToSend);
       
       if (response.data.success) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        sessionStorage.setItem('token', response.data.token);
+        sessionStorage.setItem('user', JSON.stringify(response.data.user));
         
         // If doctor, redirect to verification page instead of dashboard
         if (formData.role === 'doctor') {
@@ -200,13 +215,20 @@ const SignUp = () => {
                   <>
                     <div className="form-group">
                       <label>Specialization</label>
-                      <input
-                        type="text"
+                      <select
                         name="specialization"
                         value={formData.specialization}
                         onChange={handleChange}
-                        placeholder="e.g., Cardiology, Neurology"
-                      />
+                        required={formData.role === 'doctor'}
+                        className="role-select"
+                      >
+                        <option value="">Select specialization</option>
+                        {doctorSpecializations.map((specialization) => (
+                          <option key={specialization} value={specialization}>
+                            {specialization}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div className="form-group">
                       <label>License Number</label>
@@ -216,6 +238,16 @@ const SignUp = () => {
                         value={formData.licenseNumber}
                         onChange={handleChange}
                         placeholder="Enter license number"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Address</label>
+                      <textarea
+                        name="address"
+                        value={formData.address}
+                        onChange={handleChange}
+                        placeholder="Enter your clinic/hospital address"
+                        rows="3"
                       />
                     </div>
                   </>
@@ -274,6 +306,55 @@ const SignUp = () => {
                         value={formData.address}
                         onChange={handleChange}
                         placeholder="Enter your address"
+                      />
+                    </div>
+                  </>
+                ) : formData.role === 'doctor' ? (
+                  <>
+                    <div className="form-group">
+                      <label>City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        placeholder="Enter your city"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Age</label>
+                      <input
+                        type="number"
+                        name="age"
+                        value={formData.age}
+                        onChange={handleChange}
+                        placeholder="Enter your age"
+                        min="1"
+                        max="120"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Gender</label>
+                      <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleChange}
+                        className="role-select"
+                      >
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Phone</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="Enter your phone number"
                       />
                     </div>
                   </>

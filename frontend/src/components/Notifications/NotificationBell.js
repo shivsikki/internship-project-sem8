@@ -26,7 +26,7 @@ const NotificationBell = () => {
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const res = await axios.get('/api/notifications', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -41,7 +41,7 @@ const NotificationBell = () => {
 
   const markAsRead = async (id) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       await axios.put(`/api/notifications/${id}/read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -53,7 +53,7 @@ const NotificationBell = () => {
 
   const markAllRead = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       await axios.put('/api/notifications/read-all', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -63,11 +63,36 @@ const NotificationBell = () => {
     }
   };
 
+  const deleteNotification = async (id, e) => {
+    e.stopPropagation();
+    try {
+      const token = sessionStorage.getItem('token');
+      await axios.delete(`/api/notifications/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotifications(prev => prev.filter(n => n._id !== id));
+      setUnreadCount(prev => {
+        const deletedNotif = notifications.find(n => n._id === id);
+        return deletedNotif && !deletedNotif.isRead ? prev - 1 : prev;
+      });
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+    }
+  };
+
   return (
     <div className="notification-bell-wrapper" ref={dropdownRef}>
       <button 
         className={`bell-trigger ${unreadCount > 0 ? 'has-unread' : ''}`} 
-        onClick={() => setShowDropdown(!showDropdown)}
+        onClick={() => {
+          const nextShow = !showDropdown;
+          setShowDropdown(nextShow);
+          // If opening, clear the local badge count immediately
+          if (nextShow) {
+            setUnreadCount(0);
+            markAllRead(); // Mark in DB too
+          }
+        }}
         aria-label="Notifications"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -93,6 +118,15 @@ const NotificationBell = () => {
                   className={`notif-item ${notif.isRead ? 'read' : 'unread'}`}
                   onClick={() => markAsRead(notif._id)}
                 >
+                  <button 
+                    className="notif-delete-btn" 
+                    onClick={(e) => deleteNotification(notif._id, e)}
+                    title="Delete notification"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                  </button>
                   <div className="notif-icon-wrap">
                     <span className={`notif-type-dot ${notif.type}`} />
                   </div>

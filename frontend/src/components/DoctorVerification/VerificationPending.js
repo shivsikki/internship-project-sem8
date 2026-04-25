@@ -11,7 +11,7 @@ const VerificationPending = () => {
 
   const checkVerificationStatus = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await axios.get('/api/auth/verification-status', {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -58,8 +58,8 @@ const VerificationPending = () => {
   }, [status, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     navigate('/signin');
   };
 

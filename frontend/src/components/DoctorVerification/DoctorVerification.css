@@ -834,22 +834,80 @@
 
 /* Admin Doctor Verification Styles */
 .admin-doctor-verification {
-  padding: 30px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0;
+  position: relative;
+  min-height: 100vh;
+}
+
+.hero-bg-pattern {
+  position: absolute;
+  inset: -20px;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(74, 93, 74, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 50%, rgba(74, 85, 104, 0.06), transparent),
+    radial-gradient(ellipse 50% 30% at 0% 80%, rgba(184, 134, 11, 0.05), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Header - Book Appointment Style */
+.medivault-hero {
+  position: relative;
+  margin-bottom: 30px;
+  padding: 40px 0 50px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.medivault-hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.medivault-hero-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #5c6b73;
+  margin: 0 0 10px 0;
+  animation: heroReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.medivault-hero-title {
+  font-family: var(--font-heading, serif);
+  font-size: 2.8rem;
+  font-weight: 400;
+  color: #2c3e2d;
+  margin: 0;
+  letter-spacing: -0.02em;
+  animation: heroReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.medivault-hero-subtitle {
+  font-size: 1.1rem;
+  color: #5c6b73;
+  margin: 15px 0 0 0;
+  line-height: 1.5;
+  max-width: 600px;
+  animation: heroReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s forwards;
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+@keyframes heroReveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .admin-verification-header {
-  text-align: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.admin-verification-header h2 {
-  font-size: 2rem;
-  color: #1e293b;
-  margin-bottom: 10px;
+  display: none; /* Removed in favor of hero */
 }
 
 .admin-verification-header p {
